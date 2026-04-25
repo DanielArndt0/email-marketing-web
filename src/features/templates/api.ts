@@ -4,6 +4,7 @@ import { deleteJson, getJson, patchJson, postJson } from "@/lib/api/http";
 import type {
   CreateTemplateInput,
   EmailTemplate,
+  TemplateVariable,
   UpdateTemplateInput,
 } from "./types";
 
@@ -43,7 +44,7 @@ function normalizeTemplate(raw: unknown): EmailTemplate {
       asString(item.bodyText) ??
       asString(item.contentText),
 
-    variables: asStringArray(item.variables),
+    variables: normalizeVariables(item.variables),
 
     createdAt: asString(item.createdAt) ?? asString(item.created_at),
 
@@ -133,4 +134,64 @@ export async function updateTemplate(id: string, input: UpdateTemplateInput) {
 
 export async function deleteTemplate(id: string) {
   return deleteJson<void>(endpoints.templates.byId(id));
+}
+
+function normalizeVariables(value: unknown): TemplateVariable[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const variables: TemplateVariable[] = [];
+
+  for (const item of value) {
+    if (typeof item === "string") {
+      const key = item.trim();
+
+      if (key) {
+        variables.push({
+          key,
+          label: key,
+          required: false,
+        });
+      }
+
+      continue;
+    }
+
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const record = item as Record<string, unknown>;
+
+    const key = typeof record.key === "string" ? record.key.trim() : "";
+
+    if (!key) {
+      continue;
+    }
+
+    const variable: TemplateVariable = {
+      key,
+    };
+
+    if (typeof record.label === "string") {
+      variable.label = record.label;
+    }
+
+    if (typeof record.required === "boolean") {
+      variable.required = record.required;
+    }
+
+    if (typeof record.description === "string") {
+      variable.description = record.description;
+    }
+
+    if (typeof record.example === "string") {
+      variable.example = record.example;
+    }
+
+    variables.push(variable);
+  }
+
+  return variables;
 }

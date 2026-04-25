@@ -29,8 +29,16 @@ export type TemplateFormValues = z.infer<typeof templateFormSchema>;
 export function parseVariables(value?: string) {
   if (!value) return [];
 
-  return value
+  const keys = value
     .split(",")
-    .map((item) => item.trim())
+    .map((item) => item.replace(/{{|}}/g, "").trim())
     .filter(Boolean);
+
+  const uniqueKeys = Array.from(new Set(keys));
+
+  return uniqueKeys.map((key) => ({
+    key,
+    label: key,
+    required: false,
+  }));
 }

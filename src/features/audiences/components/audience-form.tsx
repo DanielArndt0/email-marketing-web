@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 import { useCreateAudience, useUpdateAudience } from "../hooks";
 import {
@@ -21,6 +22,8 @@ import type {
   AudienceSourceType,
   CnpjApiAudienceMode,
 } from "../types";
+
+import { brazilStates } from "@/lib/brazil/states";
 
 function getStringFilter(
   filters: Record<string, unknown> | undefined,
@@ -219,10 +222,23 @@ export function AudienceForm({
               </FormField>
 
               <FormField label="UF">
-                <Input
-                  placeholder="PR"
-                  maxLength={2}
-                  {...form.register("uf")}
+                <SearchableSelect
+                  value={form.watch("uf")}
+                  options={brazilStates}
+                  placeholder="Selecione a UF"
+                  searchPlaceholder="Pesquisar estado..."
+                  emptyMessage="Nenhum estado encontrado."
+                  onChange={(value) => {
+                    form.setValue("uf", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+
+                    form.setValue("municipio", "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }}
                 />
               </FormField>
 

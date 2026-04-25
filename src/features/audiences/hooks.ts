@@ -9,6 +9,8 @@ import {
 } from "./api";
 import type { CreateAudienceInput, UpdateAudienceInput } from "./types";
 
+import { listCnpjApiCities, listCnpjApiCnaes } from "./api/domain-options";
+
 export const audiencesQueryKey = ["audiences"];
 
 export function useAudiences() {
@@ -54,5 +56,29 @@ export function useAudiencePreview(id?: string) {
     queryKey: ["audience-preview", id],
     queryFn: () => previewAudience(id as string),
     enabled: Boolean(id),
+  });
+}
+
+export function useCnpjApiCities(uf?: string, search?: string) {
+  return useQuery({
+    queryKey: ["cnpj-api-cities", uf, search],
+    queryFn: () =>
+      listCnpjApiCities({
+        uf: uf as string,
+        search,
+      }),
+    enabled: Boolean(uf),
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useCnpjApiCnaes(search?: string) {
+  return useQuery({
+    queryKey: ["cnpj-api-cnaes", search],
+    queryFn: () =>
+      listCnpjApiCnaes({
+        search,
+      }),
+    staleTime: 1000 * 60 * 10,
   });
 }

@@ -15,6 +15,13 @@ export const endpoints = {
     resolve: "/audiences/resolve",
   },
 
+  domains: {
+    cnpjApi: {
+      cities: "/domain/cnpj-api/cities",
+      cnaes: "/domain/cnpj-api/cnaes",
+    },
+  },
+
   campaigns: {
     list: "/campaigns",
     create: "/campaigns",

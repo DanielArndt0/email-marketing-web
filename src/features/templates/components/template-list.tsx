@@ -9,9 +9,16 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useDeleteTemplate } from "../hooks";
 import type { EmailTemplate } from "../types";
 import {
-  extractDeclaredVariables,
   extractUsedVariablesFromContent,
 } from "./template-variable-highlight";
+
+function getTemplateVariableKeys(template: EmailTemplate) {
+  return (
+    template.variables
+      ?.map((variable) => variable.key)
+      .filter((key): key is string => Boolean(key?.trim())) ?? []
+  );
+}
 
 export function TemplateList({
   templates,
@@ -52,9 +59,7 @@ export function TemplateList({
 
       <div className="divide-y divide-slate-100">
         {templates.map((template) => {
-          const declaredVariables = extractDeclaredVariables(
-            template.variables?.join(", "),
-          );
+          const declaredVariables = getTemplateVariableKeys(template);
 
           const usedVariables = extractUsedVariablesFromContent(
             `${template.htmlContent ?? ""}\n${template.textContent ?? ""}`,
@@ -72,6 +77,10 @@ export function TemplateList({
 
           const undeclaredVariables = usedVariables.filter(
             (variable) => !declaredVariables.includes(variable),
+          );
+
+          const unusedDeclaredVariables = declaredVariables.filter(
+            (variable) => !usedVariables.includes(variable),
           );
 
           return (
@@ -102,6 +111,11 @@ export function TemplateList({
                       return (
                         <Badge
                           key={variable}
+                          title={
+                            isDeclared
+                              ? "Variável declarada"
+                              : "Variável usada, mas não declarada"
+                          }
                           className={
                             isDeclared
                               ? "bg-slate-50 text-slate-600"
@@ -149,6 +163,18 @@ export function TemplateList({
                           {undeclaredVariables.length === 1
                             ? "não declarada"
                             : "não declaradas"}
+                        </span>
+                      </>
+                    ) : null}
+
+                    {unusedDeclaredVariables.length > 0 ? (
+                      <>
+                        <span>•</span>
+                        <span className="font-medium text-amber-600">
+                          {unusedDeclaredVariables.length}{" "}
+                          {unusedDeclaredVariables.length === 1
+                            ? "declarada não usada"
+                            : "declaradas não usadas"}
                         </span>
                       </>
                     ) : null}

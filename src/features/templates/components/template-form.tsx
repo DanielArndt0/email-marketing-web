@@ -48,7 +48,11 @@ export function TemplateForm({
       subject: template?.subject ?? "",
       html: template?.htmlContent ?? "",
       text: template?.textContent ?? "",
-      variables: template?.variables?.join(", ") ?? "name, company, link",
+      variables:
+        template?.variables
+          ?.map((variable) => variable.key)
+          .filter(Boolean)
+          .join(", ") ?? "",
     },
   });
 
@@ -150,7 +154,7 @@ export function TemplateForm({
 
           <FormField label="Variáveis permitidas">
             <Input
-              placeholder="name, company, link"
+              placeholder="Ex: name, company, link"
               {...form.register("variables")}
             />
           </FormField>
