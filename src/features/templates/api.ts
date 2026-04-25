@@ -107,7 +107,7 @@ export async function listTemplates() {
     limit: 50,
   });
 
-  // TODO: Remove this debug log after we confirm the API response structure is consistent
+  //TODO: remover esse console.debug quando tivermos uma estrutura de resposta mais consistente e confiável
   console.debug("[templates:list] response", response);
 
   return extractTemplateItems(response).map(normalizeTemplate);

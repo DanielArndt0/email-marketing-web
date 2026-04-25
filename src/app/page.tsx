@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { useApiHealth } from "@/features/system/use-api-health";
 import { useTemplates } from "@/features/templates/hooks";
+import { useAudiences } from "@/features/audiences/hooks";
 
 export default function DashboardPage() {
   const health = useApiHealth();
@@ -18,11 +19,17 @@ export default function DashboardPage() {
       : "Indisponível";
 
   const templatesQuery = useTemplates();
-
   const templatesCount = templatesQuery.isLoading
     ? "..."
     : templatesQuery.data
       ? String(templatesQuery.data.length)
+      : "0";
+
+  const audiencesQuery = useAudiences();
+  const audiencesCount = audiencesQuery.isLoading
+    ? "..."
+    : audiencesQuery.data
+      ? String(audiencesQuery.data.length)
       : "0";
 
   return (
@@ -48,7 +55,7 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Audiences"
-          value="—"
+          value={audiencesCount}
           description="Bases e filtros salvos"
           icon={Users}
         />
