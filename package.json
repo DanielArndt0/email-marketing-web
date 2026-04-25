@@ -1,0 +1,72 @@
+{
+  "name": "email-marketing-web",
+  "version": "1.0.0",
+  "description": "Painel administrativo para gestão de campanhas de e-mail marketing.",
+  "author": "Daniel Arndt",
+  "license": "MIT",
+  "type": "module",
+  "public": true,
+  "keywords": [
+    "email-marketing",
+    "campaigns",
+    "templates",
+    "audiences",
+    "dispatches",
+    "nextjs",
+    "typescript",
+    "tailwindcss"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "preview": "next build && next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run format:check && npm run lint && npm run build",
+    "fix": "npm run format && npm run lint:fix",
+    "clean": "node -e \"const fs=require('node:fs'); for (const path of ['.next', 'out', 'dist', 'coverage', 'tsconfig.tsbuildinfo', '.tsbuildinfo', '.eslintcache']) fs.rmSync(path, { recursive: true, force: true });\"",
+    "clean:cache": "node -e \"const fs=require('node:fs'); for (const path of ['.next', '.next/cache', 'tsconfig.tsbuildinfo', '.tsbuildinfo', '.eslintcache']) fs.rmSync(path, { recursive: true, force: true });\"",
+    "clean:deps": "node -e \"const fs=require('node:fs'); fs.rmSync('node_modules', { recursive: true, force: true });\"",
+    "reset": "npm run clean:deps && npm install",
+    "openapi:types": "node scripts/generate-openapi-types.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@tanstack/react-query": "^5.62.7",
+    "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "openapi-typescript": "^7.5.2",
+    "postcss": "^8.4.49",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.7.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}
