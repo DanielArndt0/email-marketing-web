@@ -86,18 +86,29 @@ export async function listAudiences() {
 }
 
 export async function createAudience(input: CreateAudienceInput) {
+  const payload = toAudienceApiPayload(input);
+
+  //TODO: remover esse console.debug quando tivermos uma estrutura de resposta mais consistente e confiável
+
+  console.debug("[audiences:create] payload", payload);
+
   const response = await postJson<unknown, unknown>(
     endpoints.audiences.create,
-    toAudienceApiPayload(input),
+    payload,
   );
+
+  //TODO: remover esse console.debug quando tivermos uma estrutura de resposta mais consistente e confiável
+  console.debug("[audiences:create] response", response);
 
   return normalizeAudience(response);
 }
 
 export async function updateAudience(id: string, input: UpdateAudienceInput) {
+  const payload = toAudienceApiPayload(input);
+
   const response = await patchJson<unknown, unknown>(
     endpoints.audiences.byId(id),
-    toAudienceApiPayload(input),
+    payload,
   );
 
   return normalizeAudience(response);
@@ -134,11 +145,11 @@ function toAudienceApiPayload(
   input: CreateAudienceInput | UpdateAudienceInput,
 ) {
   return {
-    ...(input.name ? { name: input.name } : {}),
-    ...(input.description ? { description: input.description } : {}),
-    definition: {
-      sourceType: input.sourceType,
-      filters: input.filters ?? {},
-    },
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.description !== undefined
+      ? { description: input.description }
+      : {}),
+    ...(input.sourceType !== undefined ? { sourceType: input.sourceType } : {}),
+    ...(input.filters !== undefined ? { filters: input.filters } : {}),
   };
 }
