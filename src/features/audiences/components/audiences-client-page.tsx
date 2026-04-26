@@ -26,7 +26,7 @@ export function AudiencesPageClient() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto w-full max-w-[1680px] space-y-8">
       <PageHeader
         eyebrow="Audiences"
         title="Audiências"

@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended
+  recommendedConfig: js.configs.recommended,
 });
 
 const eslintConfig = [
@@ -21,11 +21,11 @@ const eslintConfig = [
       "coverage/**",
       "node_modules/**",
       "next-env.d.ts",
-      "src/types/control-api-openapi.ts"
-    ]
+      "src/types/control-api-openapi.ts",
+    ],
   },
 
-  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier")
+  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
 ];
 
 export default eslintConfig;

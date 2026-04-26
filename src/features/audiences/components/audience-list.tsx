@@ -1,6 +1,13 @@
 "use client";
 
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import {
+  Building2,
+  Database,
+  Eye,
+  FileSpreadsheet,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,11 +19,21 @@ import type { Audience } from "../types";
 function getSourceTypeLabel(sourceType: Audience["sourceType"]) {
   const labels: Record<Audience["sourceType"], string> = {
     "cnpj-api": "CNPJ API",
-    "csv-import": "CSV",
-    "manual-list": "Manual",
+    "csv-import": "CSV import",
+    "manual-list": "Lista manual",
   };
 
   return labels[sourceType] ?? sourceType;
+}
+
+function getSourceTypeIcon(sourceType: Audience["sourceType"]) {
+  const icons: Record<Audience["sourceType"], typeof Building2> = {
+    "cnpj-api": Building2,
+    "csv-import": FileSpreadsheet,
+    "manual-list": Database,
+  };
+
+  return icons[sourceType] ?? Database;
 }
 
 function getStringFilter(
@@ -29,10 +46,24 @@ function getStringFilter(
   if (typeof value === "number") return String(value);
 
   if (Array.isArray(value)) {
-    return value.filter((item) => typeof item === "string").join(", ");
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .join(", ");
   }
 
   return "";
+}
+
+function getNumberFilter(
+  filters: Record<string, unknown> | undefined,
+  key: string,
+) {
+  const value = filters?.[key];
+
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim()) return Number(value);
+
+  return undefined;
 }
 
 function getModeLabel(mode: string) {
@@ -45,33 +76,190 @@ function getModeLabel(mode: string) {
   return labels[mode] ?? mode;
 }
 
-function getMainFilter(audience: Audience) {
+function parseCsvLine(line: string, delimiter: string) {
+  const values: string[] = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const nextChar = line[index + 1];
+
+    if (char === '"' && insideQuotes && nextChar === '"') {
+      current += '"';
+      index += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      insideQuotes = !insideQuotes;
+      continue;
+    }
+
+    if (char === delimiter && !insideQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+
+  return values;
+}
+
+function getCsvInfo(filters: Record<string, unknown> | undefined) {
+  const csvContent = getStringFilter(filters, "csvContent");
+  const delimiter = getStringFilter(filters, "delimiter") || ",";
+
+  const lines = csvContent
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) {
+    return {
+      columns: 0,
+      rows: 0,
+    };
+  }
+
+  const headers = parseCsvLine(lines[0], delimiter);
+
+  return {
+    columns: headers.filter(Boolean).length,
+    rows: Math.max(lines.length - 1, 0),
+  };
+}
+
+function getManualRecipients(filters: Record<string, unknown> | undefined) {
+  const recipients = filters?.recipients;
+
+  if (!Array.isArray(recipients)) {
+    return [];
+  }
+
+  return recipients.filter(
+    (recipient) => recipient && typeof recipient === "object",
+  ) as Record<string, unknown>[];
+}
+
+function getAudienceBadges(audience: Audience) {
   const filters = audience.filters ?? {};
+  const badges = [getSourceTypeLabel(audience.sourceType)];
 
-  if (audience.sourceType !== "cnpj-api") {
-    return "Sem filtro específico";
+  if (audience.sourceType === "cnpj-api") {
+    const mode = getStringFilter(filters, "mode");
+
+    if (mode) {
+      badges.push(getModeLabel(mode));
+    }
   }
 
-  const mode = getStringFilter(filters, "mode");
+  return badges;
+}
 
-  if (mode === "cnae") {
-    const cnaes = getStringFilter(filters, "codigosCnae");
-    return cnaes ? `CNAEs ${cnaes}` : "CNAEs não informados";
+function getAudienceSummary(audience: Audience) {
+  const filters = audience.filters ?? {};
+  const limit = getNumberFilter(filters, "limit");
+
+  if (audience.sourceType === "cnpj-api") {
+    const mode = getStringFilter(filters, "mode");
+    const uf = getStringFilter(filters, "uf");
+    const municipio = getStringFilter(filters, "municipio");
+    const page = getNumberFilter(filters, "page");
+
+    const location = [municipio, uf].filter(Boolean).join("/");
+
+    if (mode === "cnae") {
+      const cnaes = getStringFilter(filters, "codigosCnae");
+
+      return [
+        cnaes ? `CNAEs ${cnaes}` : "CNAEs não informados",
+        location || "Sem localização",
+        page ? `página ${page}` : null,
+        limit ? `limite ${limit}` : null,
+      ].filter(Boolean);
+    }
+
+    if (mode === "razao-social") {
+      const razaoSocial = getStringFilter(filters, "razaoSocial");
+
+      return [
+        razaoSocial
+          ? `Razão social: ${razaoSocial}`
+          : "Razão social não informada",
+        location || "Sem localização",
+        page ? `página ${page}` : null,
+        limit ? `limite ${limit}` : null,
+      ].filter(Boolean);
+    }
+
+    if (mode === "socio") {
+      const nomeSocio = getStringFilter(filters, "nomeSocio");
+
+      return [
+        nomeSocio ? `Sócio: ${nomeSocio}` : "Sócio não informado",
+        location || "Sem localização",
+        page ? `página ${page}` : null,
+        limit ? `limite ${limit}` : null,
+      ].filter(Boolean);
+    }
+
+    return [
+      "Filtros da CNPJ API configurados",
+      location || "Sem localização",
+      limit ? `limite ${limit}` : null,
+    ].filter(Boolean);
   }
 
-  if (mode === "razao-social") {
-    const razaoSocial = getStringFilter(filters, "razaoSocial");
-    return razaoSocial
-      ? `Razão social: ${razaoSocial}`
-      : "Razão social não informada";
+  if (audience.sourceType === "csv-import") {
+    const emailColumn = getStringFilter(filters, "emailColumn") || "email";
+    const delimiter = getStringFilter(filters, "delimiter") || ",";
+    const csvInfo = getCsvInfo(filters);
+
+    return [
+      `coluna de e-mail: ${emailColumn}`,
+      `delimitador: ${delimiter}`,
+      `${csvInfo.columns} ${csvInfo.columns === 1 ? "coluna" : "colunas"}`,
+      `${csvInfo.rows} ${csvInfo.rows === 1 ? "linha" : "linhas"}`,
+      limit ? `limite ${limit}` : null,
+    ].filter(Boolean);
   }
 
-  if (mode === "socio") {
-    const nomeSocio = getStringFilter(filters, "nomeSocio");
-    return nomeSocio ? `Sócio: ${nomeSocio}` : "Nome do sócio não informado";
+  const recipients = getManualRecipients(filters);
+  const withExternalId = recipients.filter(
+    (recipient) =>
+      typeof recipient.externalId === "string" && recipient.externalId.trim(),
+  ).length;
+
+  return [
+    `${recipients.length} ${
+      recipients.length === 1 ? "destinatário" : "destinatários"
+    }`,
+    `${withExternalId} com externalId`,
+    limit ? `limite ${limit}` : null,
+  ].filter(Boolean);
+}
+
+function getAudienceDescription(audience: Audience) {
+  if (audience.description?.trim()) {
+    return audience.description;
   }
 
-  return "Filtros configurados";
+  if (audience.sourceType === "cnpj-api") {
+    return "Público gerado a partir de filtros da CNPJ API.";
+  }
+
+  if (audience.sourceType === "csv-import") {
+    return "Público gerado a partir de um conteúdo CSV importado.";
+  }
+
+  return "Público gerado a partir de uma lista manual de destinatários.";
 }
 
 export function AudienceList({
@@ -111,52 +299,38 @@ export function AudienceList({
 
       <div className="divide-y divide-slate-100">
         {audiences.map((audience) => {
-          const filters = audience.filters ?? {};
-
-          const mode = getStringFilter(filters, "mode");
-          const uf = getStringFilter(filters, "uf");
-          const municipio = getStringFilter(filters, "municipio");
-          const page = getStringFilter(filters, "page");
-          const limit = getStringFilter(filters, "limit");
-
-          const location = [municipio, uf].filter(Boolean).join("/");
-          const mainFilter = getMainFilter(audience);
-
-          const metadata = [
-            mainFilter,
-            location || "Sem localização",
-            page ? `página ${page}` : null,
-            limit ? `limite ${limit}` : null,
-          ].filter(Boolean);
+          const SourceIcon = getSourceTypeIcon(audience.sourceType);
+          const badges = getAudienceBadges(audience);
+          const summary = getAudienceSummary(audience);
 
           return (
             <article
               key={audience.id}
               className="flex flex-col gap-4 px-6 py-5 transition hover:bg-slate-50/60 lg:flex-row lg:items-start lg:justify-between"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
+                  <div className="mr-1 rounded-xl bg-slate-100 p-2 text-slate-500">
+                    <SourceIcon className="h-4 w-4" />
+                  </div>
+
                   <h3 className="font-semibold text-slate-950">
                     {audience.name}
                   </h3>
 
-                  <Badge className="bg-slate-50 text-slate-600">
-                    {getSourceTypeLabel(audience.sourceType)}
-                  </Badge>
-
-                  {mode ? (
-                    <Badge className="bg-slate-50 text-slate-600">
-                      {getModeLabel(mode)}
+                  {badges.map((badge) => (
+                    <Badge key={badge} className="bg-slate-50 text-slate-600">
+                      {badge}
                     </Badge>
-                  ) : null}
+                  ))}
                 </div>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  {audience.description || "Sem descrição informada"}
+                <p className="mt-2 text-sm text-slate-500">
+                  {getAudienceDescription(audience)}
                 </p>
 
-                <p className="mt-3 text-sm text-slate-500">
-                  {metadata.map((item, index) => (
+                <p className="mt-3 flex flex-wrap items-center gap-y-1 text-sm text-slate-500">
+                  {summary.map((item, index) => (
                     <span key={item}>
                       {index > 0 ? (
                         <span className="mx-2 text-slate-300">•</span>

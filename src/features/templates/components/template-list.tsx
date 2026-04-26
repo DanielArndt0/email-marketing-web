@@ -8,9 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 import { useDeleteTemplate } from "../hooks";
 import type { EmailTemplate } from "../types";
-import {
-  extractUsedVariablesFromContent,
-} from "./template-variable-highlight";
+import { extractUsedVariablesFromContent } from "./template-variable-highlight";
 
 function getTemplateVariableKeys(template: EmailTemplate) {
   return (
