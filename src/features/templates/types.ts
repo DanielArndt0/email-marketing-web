@@ -9,9 +9,9 @@ export type TemplateVariable = {
 export type EmailTemplate = {
   id: string;
   name: string;
-  subject?: string;
-  htmlContent?: string;
-  textContent?: string;
+  subject?: string | null;
+  htmlContent?: string | null;
+  textContent?: string | null;
   variables?: TemplateVariable[];
   createdAt?: string;
   updatedAt?: string;
@@ -19,7 +19,7 @@ export type EmailTemplate = {
 
 export type CreateTemplateInput = {
   name: string;
-  subject?: string;
+  subject: string;
   htmlContent?: string;
   textContent?: string;
   variables?: TemplateVariable[];

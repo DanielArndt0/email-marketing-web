@@ -1,14 +1,18 @@
 "use client";
 
 import {
+  AlertTriangle,
   Building2,
   Database,
   Eye,
   FileSpreadsheet,
   Pencil,
   Trash2,
+  X,
 } from "lucide-react";
+import { useState } from "react";
 
+import { getApiErrorMessage } from "@/lib/api/http-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -61,7 +65,12 @@ function getNumberFilter(
   const value = filters?.[key];
 
   if (typeof value === "number") return value;
-  if (typeof value === "string" && value.trim()) return Number(value);
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
 
   return undefined;
 }
@@ -272,6 +281,19 @@ export function AudienceList({
   onEdit: (audience: Audience) => void;
 }) {
   const deleteAudience = useDeleteAudience();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDeleteAudience(id: string) {
+    setDeleteError(null);
+
+    try {
+      await deleteAudience.mutateAsync(id);
+    } catch (error) {
+      setDeleteError(
+        getApiErrorMessage(error, "Não foi possível excluir esta audience."),
+      );
+    }
+  }
 
   if (audiences.length === 0) {
     return (
@@ -296,6 +318,24 @@ export function AudienceList({
             : "audiences cadastradas"}
         </p>
       </div>
+
+      {deleteError ? (
+        <div className="mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>{deleteError}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="rounded-lg p-1 text-amber-700 transition hover:bg-amber-100"
+            aria-label="Fechar aviso"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
 
       <div className="divide-y divide-slate-100">
         {audiences.map((audience) => {
@@ -366,7 +406,7 @@ export function AudienceList({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => deleteAudience.mutate(audience.id)}
+                  onClick={() => handleDeleteAudience(audience.id)}
                   disabled={deleteAudience.isPending}
                   title="Excluir audience"
                 >
