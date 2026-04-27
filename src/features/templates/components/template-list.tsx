@@ -1,6 +1,7 @@
 "use client";
 
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, Eye, Pencil, Trash2, X } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,26 +9,99 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 import { useDeleteTemplate } from "../hooks";
 import type { EmailTemplate } from "../types";
-import { extractUsedVariablesFromContent } from "./template-variable-highlight";
 
-function getTemplateVariableKeys(template: EmailTemplate) {
-  return (
-    template.variables
-      ?.map((variable) => variable.key)
-      .filter((key): key is string => Boolean(key?.trim())) ?? []
-  );
+function getTemplateVariableKey(variable: unknown) {
+  if (typeof variable === "string") {
+    return variable;
+  }
+
+  if (variable && typeof variable === "object") {
+    const record = variable as Record<string, unknown>;
+
+    if (typeof record.key === "string") {
+      return record.key;
+    }
+
+    if (typeof record.name === "string") {
+      return record.name;
+    }
+  }
+
+  return "";
+}
+
+function getTemplateVariables(template: EmailTemplate) {
+  if (!Array.isArray(template.variables)) {
+    return [];
+  }
+
+  return template.variables.map(getTemplateVariableKey).filter(Boolean);
+}
+
+function getErrorMessage(error: unknown) {
+  let message = "Não foi possível excluir este template.";
+  let campaignsCount: number | undefined;
+
+  if (error && typeof error === "object") {
+    const record = error as Record<string, unknown>;
+
+    const payload = record.payload;
+
+    if (payload && typeof payload === "object") {
+      const payloadRecord = payload as Record<string, unknown>;
+
+      if (typeof payloadRecord.message === "string") {
+        message = payloadRecord.message;
+      } else if (typeof payloadRecord.error === "string") {
+        message = payloadRecord.error;
+      }
+
+      if (typeof payloadRecord.campaignsCount === "number") {
+        campaignsCount = payloadRecord.campaignsCount;
+      }
+    } else if (typeof record.message === "string") {
+      message = record.message;
+    }
+  }
+
+  if (
+    message.includes("campaigns_template_id_fkey") ||
+    message.includes("foreign key constraint")
+  ) {
+    message =
+      "O template não pode ser excluído porque já está vinculado a uma ou mais campanhas.";
+  }
+
+  if (typeof campaignsCount === "number") {
+    return `${message.replace(/\.$/, "")}. ${campaignsCount} ${
+      campaignsCount === 1 ? "campanha vinculada" : "campanhas vinculadas"
+    }.`;
+  }
+
+  return message;
 }
 
 export function TemplateList({
   templates,
-  onView,
   onEdit,
+  onPreview,
 }: {
   templates: EmailTemplate[];
-  onView: (template: EmailTemplate) => void;
   onEdit: (template: EmailTemplate) => void;
+  onPreview: (template: EmailTemplate) => void;
 }) {
   const deleteTemplate = useDeleteTemplate();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDeleteTemplate(id: string) {
+    setDeleteError(null);
+
+    try {
+      await deleteTemplate.mutateAsync(id);
+    } catch (error) {
+      setDeleteError(getErrorMessage(error));
+    }
+  }
 
   if (templates.length === 0) {
     return (
@@ -40,177 +114,113 @@ export function TemplateList({
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white shadow-soft">
-      <div className="flex items-center justify-between border-b border-slate-200 p-5">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-950">
-            Templates cadastrados
-          </h2>
+      <div className="border-b border-slate-200 px-6 py-5">
+        <h2 className="text-lg font-semibold text-slate-950">
+          Templates cadastrados
+        </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
-            {templates.length}{" "}
-            {templates.length === 1
-              ? "template cadastrado"
-              : "templates cadastrados"}
-          </p>
-        </div>
+        <p className="mt-1 text-sm text-slate-500">
+          {templates.length}{" "}
+          {templates.length === 1
+            ? "template cadastrado"
+            : "templates cadastrados"}
+        </p>
       </div>
+
+      {deleteError ? (
+        <div className="mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+
+            <p>{deleteError}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="rounded-lg p-1 text-amber-700 transition hover:bg-amber-100"
+            aria-label="Fechar aviso"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
 
       <div className="divide-y divide-slate-100">
         {templates.map((template) => {
-          const declaredVariables = getTemplateVariableKeys(template);
-
-          const usedVariables = extractUsedVariablesFromContent(
-            `${template.htmlContent ?? ""}\n${template.textContent ?? ""}`,
-          );
-
-          const variablesToDisplay =
-            usedVariables.length > 0 ? usedVariables : declaredVariables;
-
-          const visibleVariables = variablesToDisplay.slice(0, 4);
-
-          const hiddenVariablesCount = Math.max(
-            variablesToDisplay.length - visibleVariables.length,
-            0,
-          );
-
-          const undeclaredVariables = usedVariables.filter(
-            (variable) => !declaredVariables.includes(variable),
-          );
-
-          const unusedDeclaredVariables = declaredVariables.filter(
-            (variable) => !usedVariables.includes(variable),
-          );
+          const variables = getTemplateVariables(template);
 
           return (
             <article
               key={template.id}
-              className="p-5 transition hover:bg-slate-50/70"
+              className="flex flex-col gap-4 px-6 py-5 transition hover:bg-slate-50/60 lg:flex-row lg:items-start lg:justify-between"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <h3 className="truncate font-semibold text-slate-950">
-                    {template.name}
-                  </h3>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-slate-950">
+                  {template.name}
+                </h3>
 
-                  {template.subject ? (
-                    <p className="mt-1 truncate text-sm text-slate-500">
-                      {template.subject}
-                    </p>
+                {template.subject ? (
+                  <p className="mt-1 text-sm text-slate-500">
+                    {template.subject}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-slate-400">
+                    Sem assunto informado
+                  </p>
+                )}
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {variables.length > 0 ? (
+                    variables.map((variable) => (
+                      <Badge key={variable}>{"{{" + variable + "}}"}</Badge>
+                    ))
                   ) : (
-                    <p className="mt-1 text-sm text-slate-400">
-                      Sem assunto informado
-                    </p>
+                    <span className="text-sm text-slate-400">
+                      Nenhuma variável declarada
+                    </span>
                   )}
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {visibleVariables.map((variable) => {
-                      const isDeclared = declaredVariables.includes(variable);
-
-                      return (
-                        <Badge
-                          key={variable}
-                          title={
-                            isDeclared
-                              ? "Variável declarada"
-                              : "Variável usada, mas não declarada"
-                          }
-                          className={
-                            isDeclared
-                              ? "bg-slate-50 text-slate-600"
-                              : "border-rose-200 bg-rose-50 text-rose-600"
-                          }
-                        >
-                          {"{{" + variable + "}}"}
-                        </Badge>
-                      );
-                    })}
-
-                    {hiddenVariablesCount > 0 ? (
-                      <Badge className="bg-slate-100 text-slate-500">
-                        +{hiddenVariablesCount} variáveis
-                      </Badge>
-                    ) : null}
-
-                    {variablesToDisplay.length === 0 ? (
-                      <span className="text-xs text-slate-400">
-                        Nenhuma variável identificada
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span>
-                      {usedVariables.length}{" "}
-                      {usedVariables.length === 1 ? "usada" : "usadas"}
-                    </span>
-
-                    <span>•</span>
-
-                    <span>
-                      {declaredVariables.length}{" "}
-                      {declaredVariables.length === 1
-                        ? "declarada"
-                        : "declaradas"}
-                    </span>
-
-                    {undeclaredVariables.length > 0 ? (
-                      <>
-                        <span>•</span>
-                        <span className="font-medium text-rose-600">
-                          {undeclaredVariables.length}{" "}
-                          {undeclaredVariables.length === 1
-                            ? "não declarada"
-                            : "não declaradas"}
-                        </span>
-                      </>
-                    ) : null}
-
-                    {unusedDeclaredVariables.length > 0 ? (
-                      <>
-                        <span>•</span>
-                        <span className="font-medium text-amber-600">
-                          {unusedDeclaredVariables.length}{" "}
-                          {unusedDeclaredVariables.length === 1
-                            ? "declarada não usada"
-                            : "declaradas não usadas"}
-                        </span>
-                      </>
-                    ) : null}
-                  </div>
                 </div>
 
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onView(template)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    Ver
-                  </Button>
+                <p className="mt-3 text-sm text-slate-500">
+                  {variables.length}{" "}
+                  {variables.length === 1
+                    ? "variável declarada"
+                    : "variáveis declaradas"}
+                </p>
+              </div>
 
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onEdit(template)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Editar
-                  </Button>
+              <div className="flex shrink-0 gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onPreview(template)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Ver
+                </Button>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteTemplate.mutate(template.id)}
-                    disabled={deleteTemplate.isPending}
-                    title="Excluir template"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onEdit(template)}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteTemplate(template.id)}
+                  disabled={deleteTemplate.isPending}
+                  title="Excluir template"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </article>
           );

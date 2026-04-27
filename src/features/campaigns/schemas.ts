@@ -26,10 +26,10 @@ export const campaignFormSchema = z.object({
 
 export type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
-export function toNullableString(value?: string | null) {
+export function toOptionalString(value?: string | null) {
   const normalized = value?.trim();
 
-  return normalized ? normalized : null;
+  return normalized || undefined;
 }
 
 export function toApiDateTime(value?: string | null) {

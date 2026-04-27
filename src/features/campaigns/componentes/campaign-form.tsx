@@ -1,7 +1,8 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  CalendarClock,
+  AlertTriangle,
   FileText,
   GitBranch,
   Save,
@@ -9,32 +10,30 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import { useAudiences } from "@/features/audiences/hooks";
 import type { Audience } from "@/features/audiences/types";
 import { useTemplates } from "@/features/templates/hooks";
 import type { EmailTemplate } from "@/features/templates/types";
+import { getApiErrorMessage } from "@/lib/api/http-client";
 
 import { useCreateCampaign, useUpdateCampaign } from "../hooks";
 import {
   campaignFormSchema,
   toApiDateTime,
   toDateTimeLocalValue,
-  toNullableString,
   type CampaignFormValues,
 } from "../schemas";
-import type { Campaign, CampaignStatus } from "../types";
+import type { Campaign, CreateCampaignInput } from "../types";
 
-function getTemplateVariables(template?: EmailTemplate | null) {
+function getTemplateVariables(template?: EmailTemplate | null): string[] {
   const rawVariables = (template as { variables?: unknown } | null | undefined)
     ?.variables;
 
@@ -65,7 +64,7 @@ function getTemplateVariables(template?: EmailTemplate | null) {
     .filter(Boolean);
 }
 
-function getAudienceFields(audience?: Audience | null) {
+function getAudienceFields(audience?: Audience | null): string[] {
   if (!audience) {
     return [];
   }
@@ -101,6 +100,7 @@ function getAudienceFields(audience?: Audience | null) {
   if (audience.sourceType === "csv-import") {
     const csvContent =
       typeof filters.csvContent === "string" ? filters.csvContent : "";
+
     const delimiter =
       typeof filters.delimiter === "string" && filters.delimiter
         ? filters.delimiter
@@ -136,21 +136,6 @@ function getAudienceFields(audience?: Audience | null) {
   ];
 }
 
-function getStatusLabel(status: CampaignStatus) {
-  const labels: Record<CampaignStatus, string> = {
-    draft: "Rascunho",
-    ready: "Pronta",
-    scheduled: "Agendada",
-    running: "Em execução",
-    paused: "Pausada",
-    completed: "Concluída",
-    canceled: "Cancelada",
-    failed: "Falhou",
-  };
-
-  return labels[status] ?? status;
-}
-
 function getDefaultValues(campaign: Campaign | null): CampaignFormValues {
   return {
     name: campaign?.name ?? "",
@@ -161,6 +146,18 @@ function getDefaultValues(campaign: Campaign | null): CampaignFormValues {
     audienceId: campaign?.audienceId ?? "",
     scheduleAt: toDateTimeLocalValue(campaign?.scheduleAt),
   };
+}
+
+function addOptionalStringField<T extends Record<string, unknown>>(
+  payload: T,
+  key: keyof T,
+  value?: string | null,
+): void {
+  const normalized = value?.trim();
+
+  if (normalized) {
+    payload[key] = normalized as T[keyof T];
+  }
 }
 
 export function CampaignForm({
@@ -178,13 +175,29 @@ export function CampaignForm({
   const templatesQuery = useTemplates();
   const audiencesQuery = useAudiences();
 
-  const templates = templatesQuery.data ?? [];
-  const audiences = audiencesQuery.data ?? [];
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const templates = useMemo(
+    () => templatesQuery.data ?? [],
+    [templatesQuery.data],
+  );
+
+  const audiences = useMemo(
+    () => audiencesQuery.data ?? [],
+    [audiencesQuery.data],
+  );
+
+  const defaultValues = useMemo(() => getDefaultValues(campaign), [campaign]);
 
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignFormSchema),
-    defaultValues: getDefaultValues(campaign),
+    defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+    setSubmitError(null);
+  }, [defaultValues, form]);
 
   const templateId = form.watch("templateId");
   const audienceId = form.watch("audienceId");
@@ -211,27 +224,43 @@ export function CampaignForm({
 
   const isPending = createCampaign.isPending || updateCampaign.isPending;
 
-  async function handleSubmit(values: CampaignFormValues) {
-    const payload = {
+  async function handleSubmit(values: CampaignFormValues): Promise<void> {
+    setSubmitError(null);
+
+    const payload: CreateCampaignInput = {
       name: values.name.trim(),
-      goal: toNullableString(values.goal),
-      subject: toNullableString(values.subject),
       status: values.status,
-      templateId: toNullableString(values.templateId),
-      audienceId: toNullableString(values.audienceId),
-      scheduleAt: toApiDateTime(values.scheduleAt),
     };
 
-    if (campaign) {
-      await updateCampaign.mutateAsync({
-        id: campaign.id,
-        input: payload,
-      });
-    } else {
-      await createCampaign.mutateAsync(payload);
+    addOptionalStringField(payload, "goal", values.goal);
+    addOptionalStringField(payload, "subject", values.subject);
+    addOptionalStringField(payload, "templateId", values.templateId);
+    addOptionalStringField(payload, "audienceId", values.audienceId);
+
+    if (values.scheduleAt?.trim()) {
+      const scheduleAt = toApiDateTime(values.scheduleAt);
+
+      if (scheduleAt) {
+        payload.scheduleAt = scheduleAt;
+      }
     }
 
-    onSaved();
+    try {
+      if (campaign) {
+        await updateCampaign.mutateAsync({
+          id: campaign.id,
+          input: payload,
+        });
+      } else {
+        await createCampaign.mutateAsync(payload);
+      }
+
+      onSaved();
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error, "Não foi possível salvar esta campanha."),
+      );
+    }
   }
 
   return (
@@ -252,6 +281,13 @@ export function CampaignForm({
           Cancelar
         </Button>
       </div>
+
+      {submitError ? (
+        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{submitError}</p>
+        </div>
+      ) : null}
 
       <form className="mt-6" onSubmit={form.handleSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
@@ -276,7 +312,10 @@ export function CampaignForm({
                   />
                 </FormField>
 
-                <FormField label="Objetivo">
+                <FormField
+                  label="Objetivo"
+                  error={form.formState.errors.goal?.message}
+                >
                   <Textarea
                     className="min-h-[110px] resize-none"
                     placeholder="Ex: Prospecção de empresas de tecnologia no Paraná."
@@ -284,7 +323,10 @@ export function CampaignForm({
                   />
                 </FormField>
 
-                <FormField label="Assunto">
+                <FormField
+                  label="Assunto"
+                  error={form.formState.errors.subject?.message}
+                >
                   <Input
                     placeholder="Ex: Uma oportunidade para sua empresa"
                     {...form.register("subject")}
@@ -310,7 +352,10 @@ export function CampaignForm({
                   </select>
                 </FormField>
 
-                <FormField label="Agendamento">
+                <FormField
+                  label="Agendamento"
+                  error={form.formState.errors.scheduleAt?.message}
+                >
                   <Input
                     type="datetime-local"
                     {...form.register("scheduleAt")}
@@ -334,7 +379,10 @@ export function CampaignForm({
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <FormField label="Template">
+                <FormField
+                  label="Template"
+                  error={form.formState.errors.templateId?.message}
+                >
                   <select
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                     {...form.register("templateId")}
@@ -349,7 +397,10 @@ export function CampaignForm({
                   </select>
                 </FormField>
 
-                <FormField label="Audience">
+                <FormField
+                  label="Audience"
+                  error={form.formState.errors.audienceId?.message}
+                >
                   <select
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                     {...form.register("audienceId")}
@@ -387,6 +438,7 @@ export function CampaignForm({
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-slate-500" />
+
                     <h4 className="font-semibold text-slate-950">
                       Template selecionado
                     </h4>
@@ -429,6 +481,7 @@ export function CampaignForm({
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-slate-500" />
+
                     <h4 className="font-semibold text-slate-950">
                       Audience selecionada
                     </h4>

@@ -75,7 +75,7 @@ export function TemplatesPageClient() {
       ) : (
         <TemplateList
           templates={templates}
-          onView={(template) => {
+          onPreview={(template) => {
             setViewTemplate(template);
             setIsCreating(false);
             setFormTemplate(null);
