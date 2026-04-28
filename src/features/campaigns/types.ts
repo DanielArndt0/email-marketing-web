@@ -11,6 +11,8 @@ export type CampaignStatus =
   | "canceled"
   | "failed";
 
+export type TemplateVariableMappings = Record<string, string>;
+
 export type Campaign = {
   id: string;
   name: string;
@@ -25,6 +27,7 @@ export type Campaign = {
   lastExecutionAt: string | null;
   createdAt?: string;
   updatedAt?: string;
+  templateVariableMappings?: TemplateVariableMappings;
 };
 
 export type CreateCampaignInput = {
@@ -35,6 +38,7 @@ export type CreateCampaignInput = {
   templateId?: string | null;
   audienceId?: string | null;
   scheduleAt?: string | null;
+  templateVariableMappings?: TemplateVariableMappings;
 };
 
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;

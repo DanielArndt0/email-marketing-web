@@ -3,11 +3,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertTriangle,
+  CalendarClock,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   FileText,
-  GitBranch,
   Save,
   Sparkles,
   Users,
+  ArrowRight,
+  ArrowDown,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -31,7 +36,24 @@ import {
   toDateTimeLocalValue,
   type CampaignFormValues,
 } from "../schemas";
-import type { Campaign, CreateCampaignInput } from "../types";
+import type { Campaign, CampaignStatus, CreateCampaignInput } from "../types";
+
+type WizardStep = 0 | 1 | 2;
+
+const steps = [
+  {
+    title: "Dados",
+    description: "Nome, objetivo e status",
+  },
+  {
+    title: "Vínculos",
+    description: "Template e audience",
+  },
+  {
+    title: "Resumo",
+    description: "Conferência final",
+  },
+] as const;
 
 function getTemplateVariables(template?: EmailTemplate | null): string[] {
   const rawVariables = (template as { variables?: unknown } | null | undefined)
@@ -148,16 +170,93 @@ function getDefaultValues(campaign: Campaign | null): CampaignFormValues {
   };
 }
 
-function addOptionalStringField<T extends Record<string, unknown>>(
-  payload: T,
-  key: keyof T,
-  value?: string | null,
-): void {
+function toOptionalString(value?: string | null) {
   const normalized = value?.trim();
 
-  if (normalized) {
-    payload[key] = normalized as T[keyof T];
+  return normalized || undefined;
+}
+
+function getStatusLabel(status?: CampaignStatus) {
+  const labels: Record<CampaignStatus, string> = {
+    draft: "Rascunho",
+    ready: "Pronta",
+    scheduled: "Agendada",
+    running: "Em execução",
+    paused: "Pausada",
+    completed: "Concluída",
+    canceled: "Cancelada",
+    failed: "Falhou",
+  };
+
+  return status ? labels[status] : "Rascunho";
+}
+
+function formatSchedulePreview(value?: string | null) {
+  if (!value?.trim()) {
+    return "Sem agendamento";
   }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Data inválida";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {steps.map((step, index) => {
+        const isActive = index === currentStep;
+        const isDone = index < currentStep;
+
+        return (
+          <div
+            key={step.title}
+            className={
+              isActive
+                ? "rounded-2xl border border-slate-950 bg-slate-950 p-4 text-white"
+                : isDone
+                  ? "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"
+                  : "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-500"
+            }
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={
+                  isActive
+                    ? "grid h-8 w-8 place-items-center rounded-xl bg-white text-sm font-semibold text-slate-950"
+                    : isDone
+                      ? "grid h-8 w-8 place-items-center rounded-xl bg-emerald-100 text-emerald-700"
+                      : "grid h-8 w-8 place-items-center rounded-xl bg-white text-sm font-semibold text-slate-500"
+                }
+              >
+                {isDone ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold">{step.title}</p>
+                <p
+                  className={
+                    isActive
+                      ? "mt-0.5 text-xs text-slate-300"
+                      : "mt-0.5 text-xs opacity-80"
+                  }
+                >
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function CampaignForm({
@@ -175,7 +274,12 @@ export function CampaignForm({
   const templatesQuery = useTemplates();
   const audiencesQuery = useAudiences();
 
+  const [currentStep, setCurrentStep] = useState<WizardStep>(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [templateVariableMappings, setTemplateVariableMappings] = useState<
+    Record<string, string>
+  >({});
 
   const templates = useMemo(
     () => templatesQuery.data ?? [],
@@ -196,11 +300,18 @@ export function CampaignForm({
 
   useEffect(() => {
     form.reset(defaultValues);
+    setCurrentStep(0);
     setSubmitError(null);
-  }, [defaultValues, form]);
+    setTemplateVariableMappings(campaign?.templateVariableMappings ?? {});
+  }, [campaign?.templateVariableMappings, defaultValues, form]);
 
   const templateId = form.watch("templateId");
   const audienceId = form.watch("audienceId");
+  const watchedName = form.watch("name");
+  const watchedGoal = form.watch("goal");
+  const watchedSubject = form.watch("subject");
+  const watchedStatus = form.watch("status");
+  const watchedScheduleAt = form.watch("scheduleAt");
 
   const selectedTemplate = useMemo(
     () => templates.find((template) => template.id === templateId) ?? null,
@@ -222,28 +333,152 @@ export function CampaignForm({
     [selectedAudience],
   );
 
+  useEffect(() => {
+    setTemplateVariableMappings((currentMappings) => {
+      const nextMappings: Record<string, string> = {};
+
+      templateVariables.forEach((variable) => {
+        const existingField = currentMappings[variable];
+
+        if (existingField && audienceFields.includes(existingField)) {
+          nextMappings[variable] = existingField;
+          return;
+        }
+
+        const exactMatch =
+          audienceFields.find((field) => field === variable) ??
+          audienceFields.find(
+            (field) => field.toLowerCase() === variable.toLowerCase(),
+          );
+
+        if (exactMatch) {
+          nextMappings[variable] = exactMatch;
+        }
+      });
+
+      return nextMappings;
+    });
+  }, [audienceFields, templateVariables]);
+
+  function handleMappingChange(variable: string, field: string) {
+    setTemplateVariableMappings((current) => {
+      const nextMappings = { ...current };
+
+      if (!field) {
+        delete nextMappings[variable];
+        return nextMappings;
+      }
+
+      nextMappings[variable] = field;
+      return nextMappings;
+    });
+  }
+
   const isPending = createCampaign.isPending || updateCampaign.isPending;
+
+  async function goToNextStep() {
+    setSubmitError(null);
+
+    if (currentStep === 0) {
+      const isValid = await form.trigger([
+        "name",
+        "goal",
+        "subject",
+        "status",
+        "scheduleAt",
+      ]);
+
+      if (!isValid) {
+        return;
+      }
+
+      setCurrentStep(1);
+      return;
+    }
+
+    if (currentStep === 1) {
+      const templateIdValue = toOptionalString(form.getValues("templateId"));
+      const audienceIdValue = toOptionalString(form.getValues("audienceId"));
+
+      let hasError = false;
+
+      if (!templateIdValue) {
+        form.setError("templateId", {
+          type: "custom",
+          message: "Selecione um template.",
+        });
+        hasError = true;
+      }
+
+      if (!audienceIdValue) {
+        form.setError("audienceId", {
+          type: "custom",
+          message: "Selecione uma audience.",
+        });
+        hasError = true;
+      }
+
+      if (hasError) {
+        return;
+      }
+
+      const unmappedVariables = templateVariables.filter(
+        (variable) => !templateVariableMappings[variable],
+      );
+
+      if (unmappedVariables.length > 0) {
+        setSubmitError(
+          `Mapeie as variáveis do template antes de continuar: ${unmappedVariables
+            .map((variable) => `{{${variable}}}`)
+            .join(", ")}.`,
+        );
+
+        return;
+      }
+
+      form.clearErrors(["templateId", "audienceId"]);
+      setCurrentStep(2);
+    }
+  }
+
+  function goToPreviousStep() {
+    setSubmitError(null);
+    setCurrentStep((step) => (step > 0 ? ((step - 1) as WizardStep) : step));
+  }
 
   async function handleSubmit(values: CampaignFormValues): Promise<void> {
     setSubmitError(null);
 
+    const goal = toOptionalString(values.goal);
+    const subject = toOptionalString(values.subject);
+    const templateIdValue = toOptionalString(values.templateId);
+    const audienceIdValue = toOptionalString(values.audienceId);
+    const scheduleAt = values.scheduleAt?.trim()
+      ? toApiDateTime(values.scheduleAt)
+      : undefined;
+
+    const normalizedTemplateVariableMappings = templateVariables.reduce<
+      Record<string, string>
+    >((mappings, variable) => {
+      const field = templateVariableMappings[variable];
+
+      if (field) {
+        mappings[variable] = field;
+      }
+
+      return mappings;
+    }, {});
+
     const payload: CreateCampaignInput = {
       name: values.name.trim(),
       status: values.status,
+      ...(goal ? { goal } : {}),
+      ...(subject ? { subject } : {}),
+      ...(templateIdValue ? { templateId: templateIdValue } : {}),
+      ...(audienceIdValue ? { audienceId: audienceIdValue } : {}),
+      ...(scheduleAt ? { scheduleAt } : {}),
+      templateVariableMappings: normalizedTemplateVariableMappings,
     };
-
-    addOptionalStringField(payload, "goal", values.goal);
-    addOptionalStringField(payload, "subject", values.subject);
-    addOptionalStringField(payload, "templateId", values.templateId);
-    addOptionalStringField(payload, "audienceId", values.audienceId);
-
-    if (values.scheduleAt?.trim()) {
-      const scheduleAt = toApiDateTime(values.scheduleAt);
-
-      if (scheduleAt) {
-        payload.scheduleAt = scheduleAt;
-      }
-    }
 
     try {
       if (campaign) {
@@ -272,7 +507,7 @@ export function CampaignForm({
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            Vincule template, audience e dados básicos para preparar a campanha.
+            Configure a campanha em etapas para manter o fluxo simples.
           </p>
         </div>
 
@@ -282,6 +517,10 @@ export function CampaignForm({
         </Button>
       </div>
 
+      <div className="mt-5">
+        <StepIndicator currentStep={currentStep} />
+      </div>
+
       {submitError ? (
         <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -289,102 +528,102 @@ export function CampaignForm({
         </div>
       ) : null}
 
-      <form className="mt-6" onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <aside className="space-y-5">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+      <div className="mt-5">
+        {currentStep === 0 ? (
+          <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div className="mb-5">
               <h3 className="text-xl font-semibold text-slate-950">
                 Dados da campanha
               </h3>
 
-              <p className="mt-2 text-sm leading-7 text-slate-500">
-                Defina nome, objetivo, assunto e status atual da campanha.
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Defina as informações básicas da campanha.
               </p>
+            </div>
 
-              <div className="mt-6 space-y-5">
-                <FormField
-                  label="Nome"
-                  error={form.formState.errors.name?.message}
-                >
-                  <Input
-                    placeholder="Ex: Campanha B2B Londrina"
-                    {...form.register("name")}
-                  />
-                </FormField>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <FormField
+                label="Nome"
+                error={form.formState.errors.name?.message}
+              >
+                <Input
+                  placeholder="Ex: Campanha B2B Londrina"
+                  {...form.register("name")}
+                />
+              </FormField>
 
+              <FormField
+                label="Assunto"
+                error={form.formState.errors.subject?.message}
+              >
+                <Input
+                  placeholder="Ex: Uma oportunidade para sua empresa"
+                  {...form.register("subject")}
+                />
+              </FormField>
+
+              <div className="lg:col-span-2">
                 <FormField
                   label="Objetivo"
                   error={form.formState.errors.goal?.message}
                 >
                   <Textarea
-                    className="min-h-[110px] resize-none"
+                    className="min-h-[96px] resize-none"
                     placeholder="Ex: Prospecção de empresas de tecnologia no Paraná."
                     {...form.register("goal")}
                   />
                 </FormField>
-
-                <FormField
-                  label="Assunto"
-                  error={form.formState.errors.subject?.message}
-                >
-                  <Input
-                    placeholder="Ex: Uma oportunidade para sua empresa"
-                    {...form.register("subject")}
-                  />
-                </FormField>
-
-                <FormField
-                  label="Status"
-                  error={form.formState.errors.status?.message}
-                >
-                  <select
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                    {...form.register("status")}
-                  >
-                    <option value="draft">Rascunho</option>
-                    <option value="ready">Pronta</option>
-                    <option value="scheduled">Agendada</option>
-                    <option value="running">Em execução</option>
-                    <option value="paused">Pausada</option>
-                    <option value="completed">Concluída</option>
-                    <option value="canceled">Cancelada</option>
-                    <option value="failed">Falhou</option>
-                  </select>
-                </FormField>
-
-                <FormField
-                  label="Agendamento"
-                  error={form.formState.errors.scheduleAt?.message}
-                >
-                  <Input
-                    type="datetime-local"
-                    {...form.register("scheduleAt")}
-                  />
-                </FormField>
               </div>
-            </div>
-          </aside>
 
-          <div className="min-w-0 space-y-5">
+              <FormField
+                label="Status"
+                error={form.formState.errors.status?.message}
+              >
+                <select
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                  {...form.register("status")}
+                >
+                  <option value="draft">Rascunho</option>
+                  <option value="ready">Pronta</option>
+                  <option value="scheduled">Agendada</option>
+                  <option value="running">Em execução</option>
+                  <option value="paused">Pausada</option>
+                  <option value="completed">Concluída</option>
+                  <option value="canceled">Cancelada</option>
+                  <option value="failed">Falhou</option>
+                </select>
+              </FormField>
+
+              <FormField
+                label="Agendamento"
+                error={form.formState.errors.scheduleAt?.message}
+              >
+                <Input type="datetime-local" {...form.register("scheduleAt")} />
+              </FormField>
+            </div>
+          </section>
+        ) : null}
+
+        {currentStep === 1 ? (
+          <section className="space-y-5">
             <section className="rounded-3xl border border-slate-200 bg-white p-5">
-              <div>
-                <h3 className="text-2xl font-semibold text-slate-950">
+              <div className="mb-5">
+                <h3 className="text-xl font-semibold text-slate-950">
                   Vínculos da campanha
                 </h3>
 
-                <p className="mt-2 text-sm leading-7 text-slate-500">
-                  Escolha o template e a audience que serão usados na preparação
-                  da campanha.
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Escolha o template e a audience usados na campanha.
                 </p>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="grid gap-4 lg:grid-cols-2">
                 <FormField
                   label="Template"
                   error={form.formState.errors.templateId?.message}
                 >
                   <select
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                     {...form.register("templateId")}
                   >
                     <option value="">Selecione um template</option>
@@ -402,7 +641,7 @@ export function CampaignForm({
                   error={form.formState.errors.audienceId?.message}
                 >
                   <select
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                     {...form.register("audienceId")}
                   >
                     <option value="">Selecione uma audience</option>
@@ -419,17 +658,16 @@ export function CampaignForm({
 
             <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-start gap-3">
-                <Sparkles className="mt-1 h-5 w-5 text-slate-500" />
+                <Sparkles className="mt-1 h-5 w-5 shrink-0 text-slate-500" />
 
                 <div>
                   <h3 className="text-lg font-semibold text-slate-950">
-                    Preparação para mapeamento de variáveis
+                    Mapeamento de variáveis
                   </h3>
 
-                  <p className="mt-1 text-sm leading-7 text-slate-500">
-                    Esta etapa mostra as variáveis do template e os campos da
-                    audience. O mapeamento final pode ser implementado na
-                    próxima evolução da Campaign.
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Confira as variáveis do template e os campos disponíveis da
+                    audience.
                   </p>
                 </div>
               </div>
@@ -438,7 +676,6 @@ export function CampaignForm({
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-slate-500" />
-
                     <h4 className="font-semibold text-slate-950">
                       Template selecionado
                     </h4>
@@ -450,25 +687,27 @@ export function CampaignForm({
                         {selectedTemplate.name}
                       </p>
 
-                      <p className="text-sm text-slate-500">
+                      <p className="line-clamp-2 text-sm text-slate-500">
                         {selectedTemplate.subject || "Sem assunto informado"}
                       </p>
 
-                      <div className="flex flex-wrap gap-2">
-                        {templateVariables.length > 0 ? (
-                          templateVariables.map((variable) => (
-                            <Badge
-                              key={variable}
-                              className="bg-slate-50 text-slate-600"
-                            >
-                              {"{{" + variable + "}}"}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-sm text-slate-400">
-                            Nenhuma variável declarada
-                          </span>
-                        )}
+                      <div className="max-h-[110px] overflow-y-auto pr-1">
+                        <div className="flex flex-wrap gap-2">
+                          {templateVariables.length > 0 ? (
+                            templateVariables.map((variable) => (
+                              <Badge
+                                key={variable}
+                                className="bg-slate-50 text-slate-600"
+                              >
+                                {"{{" + variable + "}}"}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-slate-400">
+                              Nenhuma variável declarada
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -481,7 +720,6 @@ export function CampaignForm({
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-slate-500" />
-
                     <h4 className="font-semibold text-slate-950">
                       Audience selecionada
                     </h4>
@@ -497,21 +735,23 @@ export function CampaignForm({
                         Origem: {selectedAudience.sourceType}
                       </p>
 
-                      <div className="flex flex-wrap gap-2">
-                        {audienceFields.length > 0 ? (
-                          audienceFields.map((field) => (
-                            <Badge
-                              key={field}
-                              className="bg-slate-50 text-slate-600"
-                            >
-                              {field}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-sm text-slate-400">
-                            Nenhum campo detectado
-                          </span>
-                        )}
+                      <div className="max-h-[110px] overflow-y-auto pr-1">
+                        <div className="flex flex-wrap gap-2">
+                          {audienceFields.length > 0 ? (
+                            audienceFields.map((field) => (
+                              <Badge
+                                key={field}
+                                className="bg-slate-50 text-slate-600"
+                              >
+                                {field}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-slate-400">
+                              Nenhum campo detectado
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -521,35 +761,294 @@ export function CampaignForm({
                   )}
                 </div>
               </div>
-            </section>
+              {templateVariables.length > 0 ? (
+                <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                  <div>
+                    <h4 className="font-semibold text-slate-950">
+                      De/para das variáveis
+                    </h4>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-5">
-              <div className="flex items-start gap-3">
-                <GitBranch className="mt-1 h-5 w-5 text-slate-500" />
+                    <p className="mt-1 text-sm text-slate-500">
+                      Relacione cada variável do template com um campo
+                      disponível na audience.
+                    </p>
+                  </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-950">
-                    Próxima etapa
-                  </h3>
+                  <div className="space-y-3">
+                    {templateVariables.map((variable) => {
+                      const currentValue =
+                        templateVariableMappings[variable] ?? "";
 
-                  <p className="mt-1 text-sm leading-7 text-slate-500">
-                    Depois que o CRUD de campanhas estiver estável, o próximo
-                    passo é salvar o mapeamento entre variáveis do template e
-                    campos da audience.
-                  </p>
+                      return (
+                        <div
+                          key={variable}
+                          className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[220px_48px_minmax(0,1fr)]"
+                        >
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Variável
+                            </p>
+
+                            <div className="flex h-11 items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900">
+                              {`{{${variable}}}`}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-center md:pt-7">
+                            <ArrowDown className="h-4 w-4 text-slate-400 md:hidden" />
+                            <ArrowRight className="hidden h-4 w-4 text-slate-400 md:block" />
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                              Campo da audience
+                            </p>
+
+                            <select
+                              value={currentValue}
+                              onChange={(event) =>
+                                handleMappingChange(
+                                  variable,
+                                  event.target.value,
+                                )
+                              }
+                              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                            >
+                              <option value="">Selecione um campo</option>
+
+                              {audienceFields.map((field) => (
+                                <option key={field} value={field}>
+                                  {field}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </section>
+          </section>
+        ) : null}
+
+        {currentStep === 2 ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-5">
+            <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-950">
+                  Conferência final
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Revise os principais dados antes de salvar a campanha.
+                </p>
+              </div>
+
+              <Badge className="w-fit bg-slate-50 text-slate-600">
+                {getStatusLabel(watchedStatus)}
+              </Badge>
+            </div>
+
+            <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="space-y-5">
+                <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Campanha
+                  </p>
+
+                  <h4 className="mt-2 text-lg font-semibold text-slate-950">
+                    {watchedName?.trim() || "Nome não informado"}
+                  </h4>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {watchedGoal?.trim() || "Sem objetivo informado."}
+                  </p>
+
+                  <div className="mt-5 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Assunto
+                      </p>
+
+                      <p className="mt-1 line-clamp-2 text-sm font-medium text-slate-900">
+                        {watchedSubject?.trim() || "Sem assunto informado"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Agendamento
+                      </p>
+
+                      <div className="mt-1 flex items-center gap-2 text-sm font-medium text-slate-900">
+                        <CalendarClock className="h-4 w-4 text-slate-400" />
+                        <span>{formatSchedulePreview(watchedScheduleAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Vínculos
+                  </p>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-slate-400" />
+
+                        <p className="text-sm font-semibold text-slate-950">
+                          Template
+                        </p>
+                      </div>
+
+                      <p className="mt-2 text-sm text-slate-700">
+                        {selectedTemplate?.name || "Não selecionado"}
+                      </p>
+
+                      <p className="mt-1 line-clamp-1 text-xs text-slate-400">
+                        {selectedTemplate?.subject || "Sem assunto informado"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-slate-400" />
+
+                        <p className="text-sm font-semibold text-slate-950">
+                          Audience
+                        </p>
+                      </div>
+
+                      <p className="mt-2 text-sm text-slate-700">
+                        {selectedAudience?.name || "Não selecionada"}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-400">
+                        {selectedAudience
+                          ? `Origem: ${selectedAudience.sourceType}`
+                          : "Sem origem"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Mapeamento
+                    </p>
+
+                    {Object.keys(templateVariableMappings).length > 0 ? (
+                      <div className="mt-3 space-y-2">
+                        {Object.entries(templateVariableMappings).map(
+                          ([variable, field]) => (
+                            <div
+                              key={variable}
+                              className="flex items-center justify-between gap-3 text-sm"
+                            >
+                              <span className="font-mono font-medium text-slate-900">
+                                {"{{" + variable + "}}"}
+                              </span>
+
+                              <span className="text-slate-400">→</span>
+
+                              <span className="font-medium text-slate-700">
+                                {field}
+                              </span>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-slate-400">
+                        Nenhum mapeamento configurado.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              </div>
+
+              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h4 className="text-base font-semibold text-slate-950">
+                  Pronto para salvar
+                </h4>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  A campanha será criada com os dados informados e ficará
+                  disponível na listagem para ajustes futuros.
+                </p>
+
+                <div className="mt-5 space-y-3 text-sm">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <span className="text-slate-500">Status</span>
+                    <span className="font-medium text-slate-950">
+                      {getStatusLabel(watchedStatus)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <span className="text-slate-500">Template</span>
+                    <span className="max-w-[160px] truncate font-medium text-slate-950">
+                      {selectedTemplate?.name || "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Audience</span>
+                    <span className="max-w-[160px] truncate font-medium text-slate-950">
+                      {selectedAudience?.name || "—"}
+                    </span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            {currentStep > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={goToPreviousStep}
+                disabled={isPending}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onCancel}
+              disabled={isPending}
+            >
+              Cancelar
+            </Button>
+
+            {currentStep < 2 ? (
+              <Button type="button" onClick={goToNextStep} disabled={isPending}>
+                Próximo
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={form.handleSubmit(handleSubmit)}
+              >
+                <Save className="h-4 w-4" />
+                {isPending ? "Salvando..." : "Salvar campanha"}
+              </Button>
+            )}
           </div>
         </div>
-
-        <div className="mt-6 flex justify-end">
-          <Button type="submit" disabled={isPending}>
-            <Save className="h-4 w-4" />
-            {isPending ? "Salvando..." : "Salvar campanha"}
-          </Button>
-        </div>
-      </form>
+      </div>
     </section>
   );
 }
