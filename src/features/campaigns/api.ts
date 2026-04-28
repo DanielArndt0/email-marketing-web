@@ -6,6 +6,7 @@ import type {
   Campaign,
   CampaignListResponse,
   CreateCampaignInput,
+  TemplateVariableMappings,
   UpdateCampaignInput,
 } from "./types";
 
@@ -14,16 +15,58 @@ type CampaignApiRecord = Campaign & {
   templateVariableMappings?: unknown;
 };
 
-function normalizeTemplateVariableMappings(value: unknown) {
+function normalizeTemplateVariableMappings(
+  value: unknown,
+): TemplateVariableMappings {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
   }
 
-  return Object.entries(value as Record<string, unknown>).reduce<
-    Record<string, string>
-  >((mappings, [variable, field]) => {
-    if (typeof field === "string" && field.trim()) {
-      mappings[variable] = field.trim();
+  return Object.entries(
+    value as Record<string, unknown>,
+  ).reduce<TemplateVariableMappings>((mappings, [variable, mapping]) => {
+    if (typeof mapping === "string" && mapping.trim()) {
+      mappings[variable] = {
+        source: "lead",
+        path: mapping.trim(),
+      };
+
+      return mappings;
+    }
+
+    if (mapping && typeof mapping === "object" && !Array.isArray(mapping)) {
+      const record = mapping as Record<string, unknown>;
+
+      const source = record.source === "static" ? "static" : "lead";
+      const path = typeof record.path === "string" ? record.path.trim() : "";
+      const value = typeof record.value === "string" ? record.value : "";
+      const legacyField =
+        typeof record.field === "string" ? record.field.trim() : "";
+
+      if (source === "static") {
+        mappings[variable] = {
+          source: "static",
+          value,
+        };
+
+        return mappings;
+      }
+
+      if (path) {
+        mappings[variable] = {
+          source: "lead",
+          path,
+        };
+
+        return mappings;
+      }
+
+      if (legacyField) {
+        mappings[variable] = {
+          source: "lead",
+          path: legacyField,
+        };
+      }
     }
 
     return mappings;

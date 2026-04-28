@@ -11,7 +11,22 @@ export type CampaignStatus =
   | "canceled"
   | "failed";
 
-export type TemplateVariableMappings = Record<string, string>;
+export type LeadTemplateVariableMapping = {
+  source: "lead";
+  path: string;
+  fallback?: string;
+};
+
+export type StaticTemplateVariableMapping = {
+  source: "static";
+  value: string;
+};
+
+export type TemplateVariableMapping =
+  | LeadTemplateVariableMapping
+  | StaticTemplateVariableMapping;
+
+export type TemplateVariableMappings = Record<string, TemplateVariableMapping>;
 
 export type Campaign = {
   id: string;
@@ -41,8 +56,6 @@ export type CreateCampaignInput = {
   templateVariableMappings?: TemplateVariableMappings;
 };
 
-export type UpdateCampaignInput = Partial<CreateCampaignInput>;
-
 export type CampaignListResponse =
   | Campaign[]
   | {
@@ -53,3 +66,5 @@ export type CampaignListResponse =
       total?: number;
       totalPages?: number;
     };
+
+export type UpdateCampaignInput = Partial<CreateCampaignInput>;
