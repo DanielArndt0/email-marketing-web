@@ -6,6 +6,10 @@ import type {
   Campaign,
   CampaignListResponse,
   CreateCampaignInput,
+  DispatchCampaignBatchInput,
+  DispatchCampaignBatchResult,
+  DispatchCampaignInput,
+  DispatchCampaignResult,
   TemplateVariableMappings,
   UpdateCampaignInput,
 } from "./types";
@@ -134,4 +138,20 @@ export async function updateCampaign(id: string, input: UpdateCampaignInput) {
 
 export async function deleteCampaign(id: string) {
   return deleteJson<void>(endpoints.campaigns.byId(id));
+}
+
+export async function dispatchCampaign(id: string) {
+  return postJson<DispatchCampaignResult, DispatchCampaignInput>(
+    endpoints.campaigns.dispatch(id),
+    {},
+  );
+}
+
+export async function dispatchCampaignBatch(campaignIds: string[]) {
+  return postJson<DispatchCampaignBatchResult, DispatchCampaignBatchInput>(
+    endpoints.campaigns.dispatchBatch,
+    {
+      campaignIds,
+    },
+  );
 }

@@ -68,3 +68,27 @@ export type CampaignListResponse =
     };
 
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
+
+export type DispatchCampaignInput = Record<string, never>;
+
+export type DispatchCampaignResult = {
+  campaignId?: string;
+  campaignName?: string;
+  created?: number;
+  enqueued?: number;
+  skipped?: number;
+  message?: string;
+  errors?: unknown[];
+  [key: string]: unknown;
+};
+
+export type DispatchCampaignBatchInput = {
+  campaignIds: string[];
+};
+
+export type DispatchCampaignBatchResult = {
+  items?: DispatchCampaignResult[];
+  data?: DispatchCampaignResult[];
+  results?: DispatchCampaignResult[];
+  [key: string]: unknown;
+};

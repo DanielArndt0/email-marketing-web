@@ -12,6 +12,22 @@ import type {
 
 export type WizardStep = 0 | 1 | 2;
 
+export type TemplateVariableDefinition = {
+  key: string;
+  label?: string;
+  required?: boolean;
+  description?: string;
+  example?: string;
+  declared?: boolean;
+};
+
+export type LeadPathOption = {
+  path: string;
+  label: string;
+  group: "standard" | "metadata";
+  description?: string;
+};
+
 export type CampaignFormProps = {
   campaign: Campaign | null;
   onCancel: () => void;
@@ -27,8 +43,8 @@ export type CampaignLinksStepProps = CampaignStepProps & {
   audiences: Audience[];
   selectedTemplate: EmailTemplate | null;
   selectedAudience: Audience | null;
-  templateVariables: string[];
-  audienceFields: string[];
+  templateVariables: TemplateVariableDefinition[];
+  leadPathOptions: LeadPathOption[];
   templateVariableMappings: TemplateVariableMappings;
   onMappingSourceChange: (
     variable: string,

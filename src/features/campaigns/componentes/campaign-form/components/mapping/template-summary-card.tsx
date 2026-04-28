@@ -3,12 +3,14 @@ import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { EmailTemplate } from "@/features/templates/types";
 
+import type { TemplateVariableDefinition } from "../../campaign-form.types";
+
 export function TemplateSummaryCard({
   selectedTemplate,
   templateVariables,
 }: {
   selectedTemplate: EmailTemplate | null;
-  templateVariables: string[];
+  templateVariables: TemplateVariableDefinition[];
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -32,8 +34,13 @@ export function TemplateSummaryCard({
             <div className="flex flex-wrap gap-2">
               {templateVariables.length > 0 ? (
                 templateVariables.map((variable) => (
-                  <Badge key={variable} className="bg-slate-50 text-slate-600">
-                    {"{{" + variable + "}}"}
+                  <Badge
+                    key={variable.key}
+                    className="bg-slate-50 text-slate-600"
+                    title={variable.description}
+                  >
+                    {"{{" + variable.key + "}}"}
+                    {variable.required ? " *" : ""}
                   </Badge>
                 ))
               ) : (

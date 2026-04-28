@@ -9,7 +9,7 @@ import { getApiErrorMessage } from "@/lib/api/http-client";
 import { useCreateCampaign, useUpdateCampaign } from "../../../hooks";
 import { campaignFormSchema, type CampaignFormValues } from "../../../schemas";
 import type { CampaignFormProps, WizardStep } from "../campaign-form.types";
-import { getAudienceFields } from "../utils/audience-fields";
+import { getLeadPathOptions } from "../utils/audience-fields";
 import { buildCampaignPayload } from "../utils/campaign-payload";
 import {
   getDefaultValues,
@@ -73,8 +73,8 @@ export function useCampaignFormController({
     [selectedTemplate],
   );
 
-  const audienceFields = useMemo(
-    () => getAudienceFields(selectedAudience),
+  const leadPathOptions = useMemo(
+    () => getLeadPathOptions(selectedAudience),
     [selectedAudience],
   );
 
@@ -87,7 +87,7 @@ export function useCampaignFormController({
   } = useTemplateVariableMapping({
     campaign,
     templateVariables,
-    audienceFields,
+    leadPathOptions,
   });
 
   const isPending = createCampaign.isPending || updateCampaign.isPending;
@@ -199,7 +199,7 @@ export function useCampaignFormController({
     selectedTemplate,
     selectedAudience,
     templateVariables,
-    audienceFields,
+    leadPathOptions,
     templateVariableMappings,
     isPending,
     goToNextStep,

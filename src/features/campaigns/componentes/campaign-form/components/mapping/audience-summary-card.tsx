@@ -3,12 +3,14 @@ import { Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Audience } from "@/features/audiences/types";
 
+import type { LeadPathOption } from "../../campaign-form.types";
+
 export function AudienceSummaryCard({
   selectedAudience,
-  audienceFields,
+  leadPathOptions,
 }: {
   selectedAudience: Audience | null;
-  audienceFields: string[];
+  leadPathOptions: LeadPathOption[];
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -30,15 +32,18 @@ export function AudienceSummaryCard({
 
           <div className="max-h-[110px] overflow-y-auto pr-1">
             <div className="flex flex-wrap gap-2">
-              {audienceFields.length > 0 ? (
-                audienceFields.map((field) => (
-                  <Badge key={field} className="bg-slate-50 text-slate-600">
-                    {field}
+              {leadPathOptions.length > 0 ? (
+                leadPathOptions.map((option) => (
+                  <Badge
+                    key={option.path}
+                    className="bg-slate-50 text-slate-600"
+                  >
+                    {option.path}
                   </Badge>
                 ))
               ) : (
                 <span className="text-sm text-slate-400">
-                  Nenhum campo detectado
+                  Nenhum path detectado
                 </span>
               )}
             </div>
@@ -46,7 +51,7 @@ export function AudienceSummaryCard({
         </div>
       ) : (
         <p className="mt-4 text-sm text-slate-400">
-          Selecione uma audience para visualizar os campos.
+          Selecione uma audience para visualizar os paths.
         </p>
       )}
     </div>

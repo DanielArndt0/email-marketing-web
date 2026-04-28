@@ -14,7 +14,7 @@ export function CampaignLinksStep({
   selectedTemplate,
   selectedAudience,
   templateVariables,
-  audienceFields,
+  leadPathOptions,
   templateVariableMappings,
   onMappingSourceChange,
   onMappingPathChange,
@@ -82,8 +82,7 @@ export function CampaignLinksStep({
             </h3>
 
             <p className="mt-1 text-sm leading-6 text-slate-500">
-              Confira as variáveis do template e os campos disponíveis da
-              audience.
+              Confira as variáveis do template e os paths disponíveis do lead.
             </p>
           </div>
         </div>
@@ -96,13 +95,13 @@ export function CampaignLinksStep({
 
           <AudienceSummaryCard
             selectedAudience={selectedAudience}
-            audienceFields={audienceFields}
+            leadPathOptions={leadPathOptions}
           />
         </div>
 
         <VariableMappingSection
           templateVariables={templateVariables}
-          audienceFields={audienceFields}
+          leadPathOptions={leadPathOptions}
           templateVariableMappings={templateVariableMappings}
           onMappingSourceChange={onMappingSourceChange}
           onMappingPathChange={onMappingPathChange}

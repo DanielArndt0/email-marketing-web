@@ -34,7 +34,7 @@ export function CampaignForm(props: CampaignFormProps) {
             selectedTemplate={controller.selectedTemplate}
             selectedAudience={controller.selectedAudience}
             templateVariables={controller.templateVariables}
-            audienceFields={controller.audienceFields}
+            leadPathOptions={controller.leadPathOptions}
             templateVariableMappings={controller.templateVariableMappings}
             onMappingSourceChange={controller.handleMappingSourceChange}
             onMappingPathChange={controller.handleMappingPathChange}

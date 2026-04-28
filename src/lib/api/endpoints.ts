@@ -27,6 +27,8 @@ export const endpoints = {
     create: "/campaigns",
     byId: (id: string) => `/campaigns/${id}`,
     audiencePreview: (id: string) => `/campaigns/${id}/audience-preview`,
+    dispatch: (id: string) => `/campaigns/${id}/dispatch`,
+    dispatchBatch: "/campaigns/dispatch/batch",
   },
 
   dispatches: {

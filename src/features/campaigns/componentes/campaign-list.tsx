@@ -1,21 +1,31 @@
 "use client";
 
 import {
+  AlertTriangle,
   CalendarClock,
+  CheckCircle2,
   Eye,
   FileText,
   Pencil,
   Send,
   Trash2,
   Users,
+  X,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { getApiErrorMessage } from "@/lib/api/http-client";
 
-import { useDeleteCampaign } from "../hooks";
+import { useDeleteCampaign, useDispatchCampaign } from "../hooks";
 import type { Campaign, CampaignStatus } from "../types";
+
+type CampaignFeedback = {
+  type: "success" | "error";
+  message: string;
+};
 
 function getStatusLabel(status: CampaignStatus) {
   const labels: Record<CampaignStatus, string> = {
@@ -72,6 +82,10 @@ function getAudienceName(campaign: Campaign) {
   return campaign.audience?.name ?? campaign.audienceId ?? "Sem audience";
 }
 
+function getDispatchSuccessMessage(campaign: Campaign) {
+  return `Dispatches da campanha "${campaign.name}" foram criados e enfileirados com sucesso.`;
+}
+
 export function CampaignList({
   campaigns,
   onPreview,
@@ -82,6 +96,36 @@ export function CampaignList({
   onEdit: (campaign: Campaign) => void;
 }) {
   const deleteCampaign = useDeleteCampaign();
+  const dispatchCampaign = useDispatchCampaign();
+
+  const [feedback, setFeedback] = useState<CampaignFeedback | null>(null);
+  const [dispatchingCampaignId, setDispatchingCampaignId] = useState<
+    string | null
+  >(null);
+
+  async function handleDispatchCampaign(campaign: Campaign) {
+    setFeedback(null);
+    setDispatchingCampaignId(campaign.id);
+
+    try {
+      await dispatchCampaign.mutateAsync(campaign.id);
+
+      setFeedback({
+        type: "success",
+        message: getDispatchSuccessMessage(campaign),
+      });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: getApiErrorMessage(
+          error,
+          "Não foi possível criar os dispatches desta campanha.",
+        ),
+      });
+    } finally {
+      setDispatchingCampaignId(null);
+    }
+  }
 
   if (campaigns.length === 0) {
     return (
@@ -107,89 +151,138 @@ export function CampaignList({
         </p>
       </div>
 
-      <div className="divide-y divide-slate-100">
-        {campaigns.map((campaign) => (
-          <article
-            key={campaign.id}
-            className="flex flex-col gap-4 px-6 py-5 transition hover:bg-slate-50/60 lg:flex-row lg:items-start lg:justify-between"
+      {feedback ? (
+        <div className="px-6 pt-5">
+          <div
+            className={
+              feedback.type === "success"
+                ? "flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+                : "flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            }
           >
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="mr-1 rounded-xl bg-slate-100 p-2 text-slate-500">
+            {feedback.type === "success" ? (
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            ) : (
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            )}
+
+            <p className="min-w-0 flex-1">{feedback.message}</p>
+
+            <button
+              type="button"
+              onClick={() => setFeedback(null)}
+              className="rounded-lg p-1 transition hover:bg-white/70"
+              aria-label="Fechar aviso"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="divide-y divide-slate-100">
+        {campaigns.map((campaign) => {
+          const isDispatching = dispatchingCampaignId === campaign.id;
+
+          return (
+            <article
+              key={campaign.id}
+              className="flex flex-col gap-4 px-6 py-5 transition hover:bg-slate-50/60 lg:flex-row lg:items-start lg:justify-between"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="mr-1 rounded-xl bg-slate-100 p-2 text-slate-500">
+                    <Send className="h-4 w-4" />
+                  </div>
+
+                  <h3 className="font-semibold text-slate-950">
+                    {campaign.name}
+                  </h3>
+
+                  <Badge className={getStatusClassName(campaign.status)}>
+                    {getStatusLabel(campaign.status)}
+                  </Badge>
+                </div>
+
+                {campaign.goal ? (
+                  <p className="mt-2 text-sm text-slate-500">{campaign.goal}</p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-400">
+                    Sem objetivo informado
+                  </p>
+                )}
+
+                <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-slate-400" />
+                    <span className="truncate">
+                      {getTemplateName(campaign)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-slate-400" />
+                    <span className="truncate">
+                      {getAudienceName(campaign)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-slate-400" />
+                    <span className="truncate">
+                      {formatDateTime(campaign.scheduleAt)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void handleDispatchCampaign(campaign)}
+                  disabled={isDispatching || dispatchCampaign.isPending}
+                  title="Resolver audience, aplicar mappings e enfileirar dispatches"
+                >
                   <Send className="h-4 w-4" />
-                </div>
+                  {isDispatching ? "Enfileirando..." : "Preparar envios"}
+                </Button>
 
-                <h3 className="font-semibold text-slate-950">
-                  {campaign.name}
-                </h3>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onPreview(campaign)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </Button>
 
-                <Badge className={getStatusClassName(campaign.status)}>
-                  {getStatusLabel(campaign.status)}
-                </Badge>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onEdit(campaign)}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteCampaign.mutate(campaign.id)}
+                  disabled={deleteCampaign.isPending}
+                  title="Excluir campanha"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-
-              {campaign.goal ? (
-                <p className="mt-2 text-sm text-slate-500">{campaign.goal}</p>
-              ) : (
-                <p className="mt-2 text-sm text-slate-400">
-                  Sem objetivo informado
-                </p>
-              )}
-
-              <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-slate-400" />
-                  <span className="truncate">{getTemplateName(campaign)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-slate-400" />
-                  <span className="truncate">{getAudienceName(campaign)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <CalendarClock className="h-4 w-4 text-slate-400" />
-                  <span className="truncate">
-                    {formatDateTime(campaign.scheduleAt)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onPreview(campaign)}
-              >
-                <Eye className="h-4 w-4" />
-                Preview
-              </Button>
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onEdit(campaign)}
-              >
-                <Pencil className="h-4 w-4" />
-                Editar
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteCampaign.mutate(campaign.id)}
-                disabled={deleteCampaign.isPending}
-                title="Excluir campanha"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </section>
   );

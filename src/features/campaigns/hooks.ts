@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCampaign,
   deleteCampaign,
+  dispatchCampaign,
+  dispatchCampaignBatch,
   getCampaign,
   listCampaigns,
   updateCampaign,
@@ -54,5 +56,29 @@ export function useDeleteCampaign() {
     mutationFn: (id: string) => deleteCampaign(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: campaignsQueryKey }),
+  });
+}
+
+export function useDispatchCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: dispatchCampaign,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatches"] });
+    },
+  });
+}
+
+export function useDispatchCampaignBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: dispatchCampaignBatch,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["dispatches"] });
+    },
   });
 }

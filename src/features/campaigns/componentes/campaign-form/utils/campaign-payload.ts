@@ -3,23 +3,24 @@ import type {
   CreateCampaignInput,
   TemplateVariableMappings,
 } from "../../../types";
+import type { TemplateVariableDefinition } from "../campaign-form.types";
 
 import { toOptionalString } from "./form-default-values";
 
 function normalizeTemplateVariableMappings(
-  templateVariables: string[],
+  templateVariables: TemplateVariableDefinition[],
   templateVariableMappings: TemplateVariableMappings,
 ): TemplateVariableMappings {
   return templateVariables.reduce<TemplateVariableMappings>(
     (mappings, variable) => {
-      const mapping = templateVariableMappings[variable];
+      const mapping = templateVariableMappings[variable.key];
 
       if (!mapping) {
         return mappings;
       }
 
       if (mapping.source === "lead" && mapping.path.trim()) {
-        mappings[variable] = {
+        mappings[variable.key] = {
           source: "lead",
           path: mapping.path.trim(),
           ...(mapping.fallback?.trim()
@@ -31,7 +32,7 @@ function normalizeTemplateVariableMappings(
       }
 
       if (mapping.source === "static" && mapping.value.trim()) {
-        mappings[variable] = {
+        mappings[variable.key] = {
           source: "static",
           value: mapping.value.trim(),
         };
@@ -45,7 +46,7 @@ function normalizeTemplateVariableMappings(
 
 export function buildCampaignPayload(params: {
   values: CampaignFormValues;
-  templateVariables: string[];
+  templateVariables: TemplateVariableDefinition[];
   templateVariableMappings: TemplateVariableMappings;
 }): CreateCampaignInput {
   const { values, templateVariables, templateVariableMappings } = params;

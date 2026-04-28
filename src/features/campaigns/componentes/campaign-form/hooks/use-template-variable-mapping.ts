@@ -5,6 +5,10 @@ import type {
   TemplateVariableMapping,
   TemplateVariableMappings,
 } from "../../../types";
+import type {
+  LeadPathOption,
+  TemplateVariableDefinition,
+} from "../campaign-form.types";
 
 function normalizeMappingsForForm(
   mappings?: TemplateVariableMappings,
@@ -52,12 +56,30 @@ function isMappingValid(mapping?: TemplateVariableMapping) {
   return Boolean(mapping.value.trim());
 }
 
+function findBestLeadPath(
+  variable: TemplateVariableDefinition,
+  leadPathOptions: LeadPathOption[],
+) {
+  const key = variable.key.toLowerCase();
+
+  return (
+    leadPathOptions.find((option) => option.path.toLowerCase() === key) ??
+    leadPathOptions.find(
+      (option) => option.path.toLowerCase() === `metadata.${key}`,
+    ) ??
+    leadPathOptions.find(
+      (option) => option.path.split(".").at(-1)?.toLowerCase() === key,
+    ) ??
+    null
+  );
+}
+
 export function useTemplateVariableMapping(params: {
   campaign: Campaign | null;
-  templateVariables: string[];
-  audienceFields: string[];
+  templateVariables: TemplateVariableDefinition[];
+  leadPathOptions: LeadPathOption[];
 }) {
-  const { campaign, templateVariables, audienceFields } = params;
+  const { campaign, templateVariables, leadPathOptions } = params;
 
   const [templateVariableMappings, setTemplateVariableMappings] =
     useState<TemplateVariableMappings>({});
@@ -73,38 +95,34 @@ export function useTemplateVariableMapping(params: {
       const nextMappings: TemplateVariableMappings = {};
 
       templateVariables.forEach((variable) => {
-        const existingMapping = currentMappings[variable];
+        const existingMapping = currentMappings[variable.key];
 
         if (
           existingMapping?.source === "lead" &&
-          audienceFields.includes(existingMapping.path)
+          leadPathOptions.some((option) => option.path === existingMapping.path)
         ) {
-          nextMappings[variable] = existingMapping;
+          nextMappings[variable.key] = existingMapping;
           return;
         }
 
         if (existingMapping?.source === "static") {
-          nextMappings[variable] = existingMapping;
+          nextMappings[variable.key] = existingMapping;
           return;
         }
 
-        const exactMatch =
-          audienceFields.find((field) => field === variable) ??
-          audienceFields.find(
-            (field) => field.toLowerCase() === variable.toLowerCase(),
-          );
+        const matchedOption = findBestLeadPath(variable, leadPathOptions);
 
-        if (exactMatch) {
-          nextMappings[variable] = {
+        if (matchedOption) {
+          nextMappings[variable.key] = {
             source: "lead",
-            path: exactMatch,
+            path: matchedOption.path,
           };
         }
       });
 
       return nextMappings;
     });
-  }, [audienceFields, templateVariables]);
+  }, [leadPathOptions, templateVariables]);
 
   const handleMappingSourceChange = useCallback(
     (variable: string, source: TemplateVariableMapping["source"]) => {
@@ -167,9 +185,13 @@ export function useTemplateVariableMapping(params: {
 
   const unmappedVariables = useMemo(
     () =>
-      templateVariables.filter(
-        (variable) => !isMappingValid(templateVariableMappings[variable]),
-      ),
+      templateVariables.filter((variable) => {
+        if (!variable.required) {
+          return false;
+        }
+
+        return !isMappingValid(templateVariableMappings[variable.key]);
+      }),
     [templateVariableMappings, templateVariables],
   );
 
