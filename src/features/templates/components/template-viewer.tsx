@@ -86,7 +86,7 @@ export function TemplateViewer({
           <div>
             <h3 className="mb-2 text-sm font-semibold text-slate-700">HTML</h3>
 
-            <pre className="max-h-[520px] overflow-auto rounded-2xl border border-slate-200 bg-slate-950 p-5 text-xs leading-6 text-slate-100">
+            <pre className="max-h-[520px] overflow-auto rounded-2xl border border-slate-200 bg-neutral-800 p-5 text-xs leading-6 text-slate-100">
               {htmlContent || "Sem conteúdo HTML."}
             </pre>
           </div>

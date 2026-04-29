@@ -303,7 +303,7 @@ export function TemplateForm({
                   onClick={() => setContentMode("html")}
                   className={
                     contentMode === "html"
-                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-medium text-white shadow-sm"
+                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-neutral-800 px-4 text-sm font-medium text-white shadow-sm"
                       : "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium text-slate-600 transition hover:bg-white"
                   }
                 >
@@ -316,7 +316,7 @@ export function TemplateForm({
                   onClick={() => setContentMode("text")}
                   className={
                     contentMode === "text"
-                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-medium text-white shadow-sm"
+                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-neutral-800 px-4 text-sm font-medium text-white shadow-sm"
                       : "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium text-slate-600 transition hover:bg-white"
                   }
                 >
@@ -454,7 +454,7 @@ export function TemplateForm({
                 </div>
               )
             ) : (
-              <pre className="h-[430px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+              <pre className="h-[430px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-neutral-800 p-4 text-xs leading-6 text-slate-100">
                 {htmlPreview?.trim()
                   ? renderHighlightedVariables(htmlPreview, declaredVariables)
                   : "Sem conteúdo HTML."}
@@ -471,7 +471,7 @@ export function TemplateForm({
               </div>
             )
           ) : (
-            <pre className="h-[430px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+            <pre className="h-[430px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-neutral-800 p-4 text-xs leading-6 text-slate-100">
               {textPreview?.trim()
                 ? renderHighlightedVariables(textPreview, declaredVariables)
                 : "Sem conteúdo em texto puro."}

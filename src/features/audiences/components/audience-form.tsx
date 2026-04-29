@@ -692,7 +692,7 @@ export function AudienceForm({
                       onClick={() => setCsvView("code")}
                       className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
                         csvView === "code"
-                          ? "bg-slate-950 text-white"
+                          ? "bg-neutral-800 text-white"
                           : "text-slate-600 hover:bg-white"
                       }`}
                     >
@@ -705,7 +705,7 @@ export function AudienceForm({
                       onClick={() => setCsvView("table")}
                       className={`inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium transition ${
                         csvView === "table"
-                          ? "bg-slate-950 text-white"
+                          ? "bg-neutral-800 text-white"
                           : "text-slate-600 hover:bg-white"
                       }`}
                     >

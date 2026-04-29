@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 
 import "./globals.css";
 
@@ -19,11 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>
-        <QueryProvider>
-          <AppShell>{children}</AppShell>
-        </QueryProvider>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body
+        className={`${inter.className} bg-slate-50 text-slate-950 antialiased transition-colors dark:bg-neutral-800 dark:text-slate-50`}
+      >
+        <ThemeProvider>
+          <QueryProvider>
+            <AppShell>{children}</AppShell>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

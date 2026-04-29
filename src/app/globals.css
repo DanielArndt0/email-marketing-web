@@ -30,3 +30,117 @@ body {
 ::selection {
   background: #dbeafe;
 }
+
+html.dark {
+  background: #171717;
+}
+
+html.dark body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(115, 115, 115, 0.1),
+      transparent 34rem
+    ),
+    linear-gradient(180deg, #171717 0%, #1a1a1a 100%);
+  color: #f5f5f5;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color-scheme: dark;
+}
+
+/* Common backgrounds */
+html.dark .bg-white,
+html.dark .bg-white\/90 {
+  background-color: #1f1f1f !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #262626 !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #2f2f2f !important;
+}
+
+html.dark .bg-slate-200 {
+  background-color: #404040 !important;
+}
+
+/* Main texts */
+html.dark .text-slate-950,
+html.dark .text-slate-900 {
+  color: #f5f5f5 !important;
+}
+
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e5e5e5 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #a3a3a3 !important;
+}
+
+html.dark .text-slate-400 {
+  color: #737373 !important;
+}
+
+/* Borders */
+html.dark .border-slate-100,
+html.dark .border-slate-200 {
+  border-color: #333333 !important;
+}
+
+html.dark .border-slate-300 {
+  border-color: #404040 !important;
+}
+
+/* Inputs, selects and textareas */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #262626 !important;
+  border-color: #404040 !important;
+  color: #f5f5f5 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #737373 !important;
+}
+
+/* Secondary buttons / soft buttons */
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #333333 !important;
+}
+
+html.dark .hover\:text-slate-950:hover {
+  color: #f5f5f5 !important;
+}
+
+/* Code/read-only blocks */
+html.dark code {
+  color: #e5e5e5;
+}
+
+/* Selection */
+html.dark ::selection {
+  background: rgba(212, 212, 212, 0.22);
+}
+
+html.dark .hover\:bg-slate-50\/60:hover {
+  background-color: rgba(64, 64, 64, 0.35) !important;
+}
+
+html.dark .hover\:bg-slate-50:hover {
+  background-color: rgba(64, 64, 64, 0.35) !important;
+}
+
+html.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(64, 64, 64, 0.45) !important;
+}

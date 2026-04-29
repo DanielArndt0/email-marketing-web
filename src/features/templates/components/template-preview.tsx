@@ -34,7 +34,7 @@ export function TemplatePreview({
       <div className="space-y-4">
         <div>
           <h3 className="mb-2 text-sm font-semibold text-slate-700">HTML</h3>
-          <pre className="max-h-72 overflow-auto rounded-xl border border-slate-200 bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+          <pre className="max-h-72 overflow-auto rounded-xl border border-slate-200 bg-neutral-800 p-4 text-xs leading-6 text-slate-100">
             {template.htmlContent || "Sem conteúdo HTML."}
           </pre>
         </div>

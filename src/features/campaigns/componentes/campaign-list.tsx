@@ -137,18 +137,18 @@ export function CampaignList({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-soft">
-      <div className="border-b border-slate-200 px-6 py-5">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-colors dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="border-b border-slate-200 px-6 py-5 transition-colors dark:border-neutral-800">
         <h2 className="text-lg font-semibold text-slate-950">
           Campanhas cadastradas
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
           {campaigns.length}{" "}
           {campaigns.length === 1
             ? "campanha cadastrada"
             : "campanhas cadastradas"}
-        </p>
+        </div>
       </div>
 
       {feedback ? (
@@ -180,14 +180,14 @@ export function CampaignList({
         </div>
       ) : null}
 
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-100 dark:divide-neutral-800">
         {campaigns.map((campaign) => {
           const isDispatching = dispatchingCampaignId === campaign.id;
 
           return (
             <article
               key={campaign.id}
-              className="flex flex-col gap-4 px-6 py-5 transition hover:bg-slate-50/60 lg:flex-row lg:items-start lg:justify-between"
+              className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-slate-50/60 dark:hover:bg-neutral-800/45 lg:flex-row lg:items-start lg:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">

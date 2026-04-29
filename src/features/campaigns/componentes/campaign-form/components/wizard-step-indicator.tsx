@@ -19,7 +19,7 @@ export function WizardStepIndicator({
             key={step.title}
             className={
               isActive
-                ? "rounded-2xl border border-slate-950 bg-slate-950 p-4 text-white"
+                ? "rounded-2xl border border-slate-950 bg-neutral-800 p-4 text-white"
                 : isDone
                   ? "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"
                   : "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-slate-500"

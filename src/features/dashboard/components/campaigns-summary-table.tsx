@@ -31,14 +31,22 @@ function getStatusLabel(status: CampaignStatus) {
 
 function getStatusClassName(status: CampaignStatus) {
   const classes: Record<CampaignStatus, string> = {
-    draft: "border-slate-200 bg-slate-50 text-slate-600",
-    ready: "border-blue-200 bg-blue-50 text-blue-700",
-    scheduled: "border-indigo-200 bg-indigo-50 text-indigo-700",
-    running: "border-amber-200 bg-amber-50 text-amber-700",
-    paused: "border-zinc-200 bg-zinc-50 text-zinc-700",
-    completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    canceled: "border-rose-200 bg-rose-50 text-rose-700",
-    failed: "border-red-200 bg-red-50 text-red-700",
+    draft:
+      "border-slate-200 bg-slate-50 text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+    ready:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300",
+    scheduled:
+      "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300",
+    running:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
+    paused:
+      "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
+    completed:
+      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
+    canceled:
+      "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300",
+    failed:
+      "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
   };
 
   return classes[status] ?? classes.draft;
@@ -103,19 +111,19 @@ export function CampaignsSummaryTable({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-soft">
-      <div className="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-colors dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 transition-colors dark:border-neutral-800 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-slate-950 p-2 text-white">
+          <div className="rounded-xl bg-neutral-800 p-2 text-white shadow-sm dark:bg-neutral-800 dark:text-neutral-100">
             <Send className="h-4 w-4" />
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">
+            <h2 className="text-lg font-semibold text-slate-950 dark:text-neutral-100">
               Resumo de campanhas
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">
               {campaigns.length}{" "}
               {campaigns.length === 1
                 ? "campanha cadastrada"
@@ -126,7 +134,7 @@ export function CampaignsSummaryTable({
 
         <Link
           href="/campaigns"
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
         >
           Ver campanhas
           <ExternalLink className="h-4 w-4" />
@@ -134,26 +142,28 @@ export function CampaignsSummaryTable({
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="px-6 py-10 text-center">
-          <p className="text-sm font-medium text-slate-700">
+        <div className="px-6 py-10 text-center transition-colors">
+          <p className="text-sm font-medium text-slate-700 dark:text-neutral-200">
             Nenhuma campanha cadastrada ainda.
           </p>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">
             Crie uma campanha vinculando um template e uma audience.
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
           {latestCampaigns.map((campaign) => (
             <article
               key={campaign.id}
-              className="grid gap-4 px-6 py-5 transition hover:bg-slate-50/70 xl:grid-cols-[minmax(0,1.4fr)_120px_minmax(0,1fr)_minmax(0,1fr)_180px]"
+              className="grid gap-4 px-6 py-5 transition-colors hover:bg-neutral-50/70 dark:hover:bg-neutral-800/45 lg:grid-cols-[minmax(0,1.3fr)_120px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-start"
             >
               <div className="min-w-0">
-                <p className="font-semibold text-slate-950">{campaign.name}</p>
+                <p className="font-semibold text-slate-950 dark:text-neutral-100">
+                  {campaign.name}
+                </p>
 
-                <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
+                <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-neutral-400">
                   {getCampaignSubtitle(campaign)}
                 </p>
               </div>
@@ -165,34 +175,34 @@ export function CampaignsSummaryTable({
               </div>
 
               <div className="min-w-0">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-neutral-500">
                   Template
                 </p>
 
-                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
-                  <FileText className="h-4 w-4 shrink-0 text-slate-400" />
+                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
+                  <FileText className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-500" />
                   <span className="truncate">{getTemplateName(campaign)}</span>
                 </div>
               </div>
 
               <div className="min-w-0">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-neutral-500">
                   Audience
                 </p>
 
-                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
-                  <Users className="h-4 w-4 shrink-0 text-slate-400" />
+                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
+                  <Users className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-500" />
                   <span className="truncate">{getAudienceName(campaign)}</span>
                 </div>
               </div>
 
               <div className="min-w-0">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-neutral-500">
                   Agendamento
                 </p>
 
-                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
-                  <CalendarClock className="h-4 w-4 shrink-0 text-slate-400" />
+                <div className="flex min-w-0 items-center gap-2 text-sm text-slate-700 dark:text-neutral-300">
+                  <CalendarClock className="h-4 w-4 shrink-0 text-slate-400 dark:text-neutral-500" />
                   <span className="truncate">
                     {formatDateTime(campaign.scheduleAt)}
                   </span>
