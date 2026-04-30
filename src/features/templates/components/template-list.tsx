@@ -113,13 +113,13 @@ export function TemplateList({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-colors dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="border-b border-slate-200 px-6 py-5 transition-colors dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-slate-950">
+    <section className="app-list rounded-2xl">
+      <div className="app-list-header px-6 py-5">
+        <h2 className="app-heading text-lg font-semibold">
           Templates cadastrados
         </h2>
 
-        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <div className="app-muted mt-1 text-sm">
           {templates.length}{" "}
           {templates.length === 1
             ? "template cadastrado"
@@ -128,7 +128,7 @@ export function TemplateList({
       </div>
 
       {deleteError ? (
-        <div className="mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="app-alert-warning mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl px-4 py-3 text-sm">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 
@@ -138,7 +138,7 @@ export function TemplateList({
           <button
             type="button"
             onClick={() => setDeleteError(null)}
-            className="rounded-lg p-1 text-amber-700 transition hover:bg-amber-100"
+            className="rounded-lg p-1 transition hover:bg-[var(--app-surface-hover)]"
             aria-label="Fechar aviso"
           >
             <X className="h-4 w-4" />
@@ -146,28 +146,22 @@ export function TemplateList({
         </div>
       ) : null}
 
-      <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+      <div>
         {templates.map((template) => {
           const variables = getTemplateVariables(template);
 
           return (
             <article
               key={template.id}
-              className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-slate-50/60 dark:hover:bg-neutral-800/45 lg:flex-row lg:items-start lg:justify-between"
+              className="app-list-row flex flex-col gap-4 border-t px-6 py-5 first:border-t-0 lg:flex-row lg:items-start lg:justify-between"
             >
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-slate-950">
-                  {template.name}
-                </h3>
+                <h3 className="app-heading font-semibold">{template.name}</h3>
 
                 {template.subject ? (
-                  <p className="mt-1 text-sm text-slate-500">
-                    {template.subject}
-                  </p>
+                  <p className="app-muted mt-1 text-sm">{template.subject}</p>
                 ) : (
-                  <p className="mt-1 text-sm text-slate-400">
-                    Sem assunto informado
-                  </p>
+                  <p className="app-soft mt-1 text-sm">Sem assunto informado</p>
                 )}
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -176,13 +170,13 @@ export function TemplateList({
                       <Badge key={variable}>{"{{" + variable + "}}"}</Badge>
                     ))
                   ) : (
-                    <span className="text-sm text-slate-400">
+                    <span className="app-soft text-sm">
                       Nenhuma variável declarada
                     </span>
                   )}
                 </div>
 
-                <p className="mt-3 text-sm text-slate-500">
+                <p className="app-muted mt-3 text-sm">
                   {variables.length}{" "}
                   {variables.length === 1
                     ? "variável declarada"

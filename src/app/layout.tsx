@@ -21,9 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        className={`${inter.className} bg-slate-50 text-slate-950 antialiased transition-colors dark:bg-neutral-800 dark:text-slate-50`}
-      >
+      <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
           <QueryProvider>
             <AppShell>{children}</AppShell>

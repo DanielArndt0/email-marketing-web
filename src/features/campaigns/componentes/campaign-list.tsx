@@ -44,14 +44,14 @@ function getStatusLabel(status: CampaignStatus) {
 
 function getStatusClassName(status: CampaignStatus) {
   const classes: Record<CampaignStatus, string> = {
-    draft: "border-slate-200 bg-slate-50 text-slate-600",
-    ready: "border-blue-200 bg-blue-50 text-blue-700",
-    scheduled: "border-indigo-200 bg-indigo-50 text-indigo-700",
-    running: "border-amber-200 bg-amber-50 text-amber-700",
-    paused: "border-zinc-200 bg-zinc-50 text-zinc-700",
-    completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    canceled: "border-rose-200 bg-rose-50 text-rose-700",
-    failed: "border-red-200 bg-red-50 text-red-700",
+    draft: "app-badge",
+    ready: "app-badge-info",
+    scheduled: "app-badge-info",
+    running: "app-badge-warning",
+    paused: "app-badge",
+    completed: "app-badge-success",
+    canceled: "app-badge-danger",
+    failed: "app-badge-danger",
   };
 
   return classes[status] ?? classes.draft;
@@ -137,13 +137,13 @@ export function CampaignList({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-colors dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="border-b border-slate-200 px-6 py-5 transition-colors dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-slate-950">
+    <section className="app-list rounded-2xl">
+      <div className="app-list-header px-6 py-5">
+        <h2 className="app-heading text-lg font-semibold">
           Campanhas cadastradas
         </h2>
 
-        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <div className="app-muted mt-1 text-sm">
           {campaigns.length}{" "}
           {campaigns.length === 1
             ? "campanha cadastrada"
@@ -156,8 +156,8 @@ export function CampaignList({
           <div
             className={
               feedback.type === "success"
-                ? "flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
-                : "flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                ? "app-alert-success flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
+                : "app-alert-danger flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
             }
           >
             {feedback.type === "success" ? (
@@ -171,7 +171,7 @@ export function CampaignList({
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="rounded-lg p-1 transition hover:bg-white/70"
+              className="rounded-lg p-1 transition hover:bg-[var(--app-surface-hover)]"
               aria-label="Fechar aviso"
             >
               <X className="h-4 w-4" />
@@ -180,24 +180,22 @@ export function CampaignList({
         </div>
       ) : null}
 
-      <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+      <div>
         {campaigns.map((campaign) => {
           const isDispatching = dispatchingCampaignId === campaign.id;
 
           return (
             <article
               key={campaign.id}
-              className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-slate-50/60 dark:hover:bg-neutral-800/45 lg:flex-row lg:items-start lg:justify-between"
+              className="app-list-row flex flex-col gap-4 border-t px-6 py-5 first:border-t-0 lg:flex-row lg:items-start lg:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="mr-1 rounded-xl bg-slate-100 p-2 text-slate-500">
+                  <div className="app-icon-box mr-1 rounded-xl p-2">
                     <Send className="h-4 w-4" />
                   </div>
 
-                  <h3 className="font-semibold text-slate-950">
-                    {campaign.name}
-                  </h3>
+                  <h3 className="app-heading font-semibold">{campaign.name}</h3>
 
                   <Badge className={getStatusClassName(campaign.status)}>
                     {getStatusLabel(campaign.status)}
@@ -205,30 +203,30 @@ export function CampaignList({
                 </div>
 
                 {campaign.goal ? (
-                  <p className="mt-2 text-sm text-slate-500">{campaign.goal}</p>
+                  <p className="app-muted mt-2 text-sm">{campaign.goal}</p>
                 ) : (
-                  <p className="mt-2 text-sm text-slate-400">
+                  <p className="app-soft mt-2 text-sm">
                     Sem objetivo informado
                   </p>
                 )}
 
-                <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-3">
+                <div className="app-text mt-4 grid gap-3 text-sm md:grid-cols-3">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-slate-400" />
+                    <FileText className="app-soft h-4 w-4" />
                     <span className="truncate">
                       {getTemplateName(campaign)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-slate-400" />
+                    <Users className="app-soft h-4 w-4" />
                     <span className="truncate">
                       {getAudienceName(campaign)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <CalendarClock className="h-4 w-4 text-slate-400" />
+                    <CalendarClock className="app-soft h-4 w-4" />
                     <span className="truncate">
                       {formatDateTime(campaign.scheduleAt)}
                     </span>

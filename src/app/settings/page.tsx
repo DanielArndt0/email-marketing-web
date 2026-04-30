@@ -19,20 +19,16 @@ function SettingsCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft transition dark:border-neutral-800 dark:bg-neutral-950 md:p-6">
+    <section className="app-card rounded-3xl p-5 md:p-6">
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl bg-slate-100 p-2 text-slate-600 transition dark:bg-neutral-900 dark:text-neutral-300">
+        <div className="app-icon-box rounded-2xl p-2">
           <Icon className="h-5 w-5" />
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold text-slate-950 dark:text-neutral-100">
-            {title}
-          </h2>
+          <h2 className="app-heading text-lg font-semibold">{title}</h2>
 
-          <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-neutral-400">
-            {description}
-          </p>
+          <p className="app-muted mt-1 text-sm leading-6">{description}</p>
         </div>
       </div>
 
@@ -42,24 +38,16 @@ function SettingsCard({
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
-  return (
-    <label className="text-sm font-medium text-slate-700 dark:text-neutral-300">
-      {children}
-    </label>
-  );
+  return <label className="app-label text-sm font-medium">{children}</label>;
 }
 
 function HelperText({ children }: { children: ReactNode }) {
-  return (
-    <p className="mt-1 text-xs leading-5 text-slate-400 dark:text-neutral-500">
-      {children}
-    </p>
-  );
+  return <p className="app-soft mt-1 text-xs leading-5">{children}</p>;
 }
 
 function ReadOnlyCode({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-xs text-slate-700 transition dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+    <div className="app-card-muted rounded-2xl px-4 py-3 font-mono text-xs">
       {children}
     </div>
   );
@@ -67,10 +55,10 @@ function ReadOnlyCode({ children }: { children: ReactNode }) {
 
 function themeOptionClassName(isSelected: boolean) {
   if (isSelected) {
-    return "rounded-2xl border border-neutral-700 bg-neutral-800 p-4 text-left text-white shadow-sm transition hover:bg-neutral-700 dark:border-neutral-500 dark:bg-neutral-800";
+    return "app-primary-button rounded-2xl border p-4 text-left shadow-sm";
   }
 
-  return "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800";
+  return "app-card-muted rounded-2xl p-4 text-left transition hover:bg-[var(--app-surface-hover)]";
 }
 
 export default function SettingsPage() {
@@ -102,7 +90,7 @@ export default function SettingsPage() {
                     className={
                       theme === "light"
                         ? "rounded-xl bg-white/10 p-2"
-                        : "rounded-xl bg-slate-200 p-2 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        : "app-icon-box rounded-xl p-2"
                     }
                   >
                     <Sun className="h-5 w-5" />
@@ -116,8 +104,8 @@ export default function SettingsPage() {
                 <p
                   className={
                     theme === "light"
-                      ? "mt-4 font-semibold text-white"
-                      : "mt-4 font-semibold text-slate-950 dark:text-neutral-100"
+                      ? "mt-4 font-semibold"
+                      : "app-heading mt-4 font-semibold"
                   }
                 >
                   Claro
@@ -126,8 +114,8 @@ export default function SettingsPage() {
                 <p
                   className={
                     theme === "light"
-                      ? "mt-1 text-sm leading-6 text-slate-300"
-                      : "mt-1 text-sm leading-6 text-slate-500 dark:text-neutral-400"
+                      ? "mt-1 text-sm leading-6 opacity-75"
+                      : "app-muted mt-1 text-sm leading-6"
                   }
                 >
                   Visual limpo para uso padrão durante o dia.
@@ -144,22 +132,22 @@ export default function SettingsPage() {
                     className={
                       theme === "dark"
                         ? "rounded-xl bg-white/10 p-2"
-                        : "rounded-xl bg-slate-200 p-2 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        : "app-icon-box rounded-xl p-2"
                     }
                   >
                     <Moon className="h-5 w-5" />
                   </div>
 
                   {theme === "dark" ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                    <CheckCircle2 className="h-5 w-5" />
                   ) : null}
                 </div>
 
                 <p
                   className={
                     theme === "dark"
-                      ? "mt-4 font-semibold text-white"
-                      : "mt-4 font-semibold text-slate-950 dark:text-neutral-100"
+                      ? "mt-4 font-semibold"
+                      : "app-heading mt-4 font-semibold"
                   }
                 >
                   Escuro
@@ -168,8 +156,8 @@ export default function SettingsPage() {
                 <p
                   className={
                     theme === "dark"
-                      ? "mt-1 text-sm leading-6 text-neutral-300"
-                      : "mt-1 text-sm leading-6 text-slate-500 dark:text-neutral-400"
+                      ? "mt-1 text-sm leading-6 opacity-75"
+                      : "app-muted mt-1 text-sm leading-6"
                   }
                 >
                   Interface escura em grafite neutro, próxima do visual claro.

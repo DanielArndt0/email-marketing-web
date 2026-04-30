@@ -5,15 +5,14 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default:
-          "bg-neutral-800 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-white",
-        secondary: "bg-slate-100 text-slate-950 hover:bg-slate-200",
-        ghost: "hover:bg-slate-100 hover:text-slate-950",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
+        default: "app-button-primary",
+        secondary: "app-button-secondary",
+        ghost: "app-button-ghost",
+        destructive: "app-button-danger",
       },
       size: {
         default: "h-10 px-4 py-2",

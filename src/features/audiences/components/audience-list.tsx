@@ -305,13 +305,13 @@ export function AudienceList({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-colors dark:border-neutral-700 dark:bg-neutral-900">
-      <div className="border-b border-slate-200 px-6 py-5 transition-colors dark:border-neutral-800">
-        <h2 className="text-lg font-semibold text-slate-950">
+    <section className="app-list rounded-2xl">
+      <div className="app-list-header px-6 py-5">
+        <h2 className="app-heading text-lg font-semibold">
           Audiences cadastradas
         </h2>
 
-        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <div className="app-muted mt-1 text-sm">
           {audiences.length}{" "}
           {audiences.length === 1
             ? "audience cadastrada"
@@ -320,7 +320,7 @@ export function AudienceList({
       </div>
 
       {deleteError ? (
-        <div className="mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="app-alert-warning mx-6 mt-5 flex items-start justify-between gap-3 rounded-2xl px-4 py-3 text-sm">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>{deleteError}</p>
@@ -329,7 +329,7 @@ export function AudienceList({
           <button
             type="button"
             onClick={() => setDeleteError(null)}
-            className="rounded-lg p-1 text-amber-700 transition hover:bg-amber-100"
+            className="rounded-lg p-1 transition hover:bg-[var(--app-surface-hover)]"
             aria-label="Fechar aviso"
           >
             <X className="h-4 w-4" />
@@ -337,7 +337,7 @@ export function AudienceList({
         </div>
       ) : null}
 
-      <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+      <div>
         {audiences.map((audience) => {
           const SourceIcon = getSourceTypeIcon(audience.sourceType);
           const badges = getAudienceBadges(audience);
@@ -346,7 +346,7 @@ export function AudienceList({
           return (
             <article
               key={audience.id}
-              className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-slate-50/60 dark:hover:bg-neutral-800/45 lg:flex-row lg:items-start lg:justify-between"
+              className="app-list-row flex flex-col gap-4 border-t px-6 py-5 first:border-t-0 lg:flex-row lg:items-start lg:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -354,9 +354,7 @@ export function AudienceList({
                     <SourceIcon className="h-4 w-4" />
                   </div>
 
-                  <h3 className="font-semibold text-slate-950">
-                    {audience.name}
-                  </h3>
+                  <h3 className="app-heading font-semibold">{audience.name}</h3>
 
                   {badges.map((badge) => (
                     <Badge key={badge} className="bg-slate-50 text-slate-600">

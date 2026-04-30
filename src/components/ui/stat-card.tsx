@@ -14,18 +14,20 @@ export function StatCard({
   icon: Icon,
 }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
+    <div className="app-card rounded-2xl p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-slate-500">{title}</p>
-          <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
+          <p className="app-muted text-sm font-medium">{title}</p>
+          <p className="app-heading mt-2 text-2xl font-bold">{value}</p>
         </div>
-        <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+
+        <div className="app-icon-box rounded-xl p-2">
           <Icon className="h-5 w-5" />
         </div>
       </div>
+
       {description ? (
-        <p className="mt-3 truncate text-xs text-slate-400">{description}</p>
+        <p className="app-soft mt-3 truncate text-xs">{description}</p>
       ) : null}
     </div>
   );

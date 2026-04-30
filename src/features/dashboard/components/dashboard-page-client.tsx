@@ -34,21 +34,21 @@ function DashboardShortcut({
   return (
     <Link
       href={href}
-      className="group flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white"
+      className="app-card-muted group flex items-start justify-between gap-4 rounded-2xl p-4 transition hover:bg-[var(--app-surface-hover)]"
     >
       <div className="flex items-start gap-3">
-        <div className="rounded-xl bg-white p-2 text-slate-500 shadow-sm transition group-hover:text-slate-950">
+        <div className="app-icon-box rounded-xl p-2 shadow-sm transition group-hover:text-[var(--app-text-strong)]">
           <Icon className="h-4 w-4" />
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-slate-950">{title}</h3>
+          <h3 className="app-heading text-sm font-semibold">{title}</h3>
 
-          <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+          <p className="app-muted mt-1 text-sm leading-6">{description}</p>
         </div>
       </div>
 
-      <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-slate-700" />
+      <ArrowRight className="app-soft mt-2 h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:text-[var(--app-text-strong)]" />
     </Link>
   );
 }
@@ -124,7 +124,7 @@ export function DashboardPageClient() {
       </section>
 
       {health.isError ? (
-        <section className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <section className="app-alert-danger rounded-2xl p-4 text-sm">
           <strong>Erro ao consultar a Control API:</strong>{" "}
           {health.error instanceof Error
             ? health.error.message
@@ -140,11 +140,11 @@ export function DashboardPageClient() {
         />
 
         <aside className="h-[500px]">
-          <section className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
+          <section className="app-card flex h-full flex-col rounded-2xl p-5">
             <div className="mb-5 shrink-0">
-              <h2 className="text-lg font-semibold text-slate-950">Atalhos</h2>
+              <h2 className="app-heading text-lg font-semibold">Atalhos</h2>
 
-              <p className="mt-1 text-sm leading-6 text-slate-500">
+              <p className="app-muted mt-1 text-sm leading-6">
                 Acesse os módulos principais.
               </p>
             </div>

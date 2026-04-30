@@ -37,20 +37,16 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="border-b border-slate-200 bg-white/90 px-4 py-4 backdrop-blur transition-colors dark:border-neutral-800 dark:bg-neutral-950/95 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
+    <aside className="app-sidebar border-b px-4 py-4 backdrop-blur transition-colors lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
       <Link href="/" className="mb-6 flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-neutral-800 text-white shadow-soft transition-colors dark:bg-neutral-100 dark:text-neutral-950">
+        <div className="app-primary-button grid h-11 w-11 place-items-center rounded-2xl shadow-soft">
           <BarChart3 className="h-5 w-5" />
         </div>
 
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500">
-            Email
-          </p>
+          <p className="app-eyebrow">Email</p>
 
-          <h1 className="text-lg font-bold text-slate-950 dark:text-neutral-100">
-            Marketing Web
-          </h1>
+          <h1 className="app-heading text-lg font-bold">Marketing Web</h1>
         </div>
       </Link>
 
@@ -65,16 +61,14 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-neutral-800 text-white shadow-sm dark:bg-neutral-800 dark:text-neutral-50"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100",
+                  ? "app-sidebar-link-active shadow-sm"
+                  : "app-sidebar-link",
               )}
             >
               <item.icon
                 className={cn(
                   "h-4 w-4",
-                  isActive
-                    ? "text-white dark:text-neutral-100"
-                    : "text-slate-500 dark:text-neutral-500",
+                  isActive ? "opacity-100" : "opacity-80",
                 )}
               />
 
@@ -84,12 +78,10 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-colors dark:border-neutral-800 dark:bg-neutral-900">
-        <p className="text-sm font-medium text-slate-950 dark:text-neutral-100">
-          Integração
-        </p>
+      <div className="app-card-muted mt-6 rounded-2xl p-4">
+        <p className="app-heading text-sm font-medium">Integração</p>
 
-        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-neutral-400">
+        <p className="app-muted mt-1 text-xs leading-5">
           Este painel consome apenas a Control API via HTTP.
         </p>
       </div>

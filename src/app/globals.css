@@ -31,12 +31,30 @@
 
   --app-primary: #2f343b;
   --app-primary-hover: #24282f;
+  --app-primary-soft: #f1f5f9;
   --app-primary-contrast: #ffffff;
 
   --app-icon-bg: #eef2f7;
   --app-icon-text: #64748b;
 
+  --app-focus: rgba(100, 116, 139, 0.22);
   --app-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+
+  --app-success-bg: #ecfdf5;
+  --app-success-border: #a7f3d0;
+  --app-success-text: #047857;
+
+  --app-danger-bg: #fef2f2;
+  --app-danger-border: #fecaca;
+  --app-danger-text: #b91c1c;
+
+  --app-warning-bg: #fffbeb;
+  --app-warning-border: #fde68a;
+  --app-warning-text: #b45309;
+
+  --app-info-bg: #eff6ff;
+  --app-info-border: #bfdbfe;
+  --app-info-text: #1d4ed8;
 }
 
 html.dark {
@@ -64,12 +82,30 @@ html.dark {
 
   --app-primary: #f3f4f6;
   --app-primary-hover: #ffffff;
+  --app-primary-soft: #383838;
   --app-primary-contrast: #242424;
 
   --app-icon-bg: #3a3a3a;
   --app-icon-text: #d4d4d4;
 
+  --app-focus: rgba(255, 255, 255, 0.16);
   --app-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+
+  --app-success-bg: rgba(16, 185, 129, 0.12);
+  --app-success-border: rgba(16, 185, 129, 0.34);
+  --app-success-text: #86efac;
+
+  --app-danger-bg: rgba(239, 68, 68, 0.12);
+  --app-danger-border: rgba(239, 68, 68, 0.34);
+  --app-danger-text: #fca5a5;
+
+  --app-warning-bg: rgba(245, 158, 11, 0.13);
+  --app-warning-border: rgba(245, 158, 11, 0.36);
+  --app-warning-text: #fcd34d;
+
+  --app-info-bg: rgba(59, 130, 246, 0.13);
+  --app-info-border: rgba(59, 130, 246, 0.36);
+  --app-info-text: #93c5fd;
 }
 
 /* =========================================================
@@ -112,6 +148,13 @@ html.dark ::selection {
   background: rgba(255, 255, 255, 0.18);
 }
 
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
 html.dark input,
 html.dark textarea,
 html.dark select {
@@ -149,6 +192,24 @@ html.dark select {
     color: var(--app-text-soft);
   }
 
+  .app-eyebrow {
+    color: var(--app-text-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .app-surface {
+    background: var(--app-surface);
+    color: var(--app-text);
+  }
+
+  .app-surface-muted {
+    background: var(--app-surface-muted);
+    color: var(--app-text);
+  }
+
   .app-card {
     border: 1px solid var(--app-border);
     background: var(--app-surface);
@@ -168,6 +229,12 @@ html.dark select {
     color: var(--app-text);
   }
 
+  .app-empty-state {
+    border: 1px dashed var(--app-border);
+    background: var(--app-surface-muted);
+    color: var(--app-text);
+  }
+
   .app-list {
     overflow: hidden;
     border: 1px solid var(--app-border);
@@ -182,6 +249,7 @@ html.dark select {
   }
 
   .app-list-row {
+    border-color: var(--app-border-soft);
     background: var(--app-surface);
     transition:
       background-color 160ms ease,
@@ -197,19 +265,67 @@ html.dark select {
     color: var(--app-icon-text);
   }
 
-  .app-primary-button {
+  .app-divider {
+    border-color: var(--app-border-soft);
+  }
+
+  .app-label {
+    color: var(--app-text);
+  }
+
+  .app-field-error {
+    color: var(--app-danger-text);
+  }
+
+  .app-focus {
+    outline: none;
+  }
+
+  .app-focus:focus,
+  .app-focus:focus-visible {
+    border-color: var(--app-text-soft);
+    box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-input {
+    border: 1px solid var(--app-border);
+    background: var(--app-surface-muted);
+    color: var(--app-text-strong);
+    outline: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-input::placeholder {
+    color: var(--app-text-soft);
+  }
+
+  .app-input:focus,
+  .app-input:focus-visible {
+    border-color: var(--app-text-soft);
+    box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-primary-button,
+  .app-button-primary {
     background: var(--app-primary);
     color: var(--app-primary-contrast);
     transition:
       background-color 160ms ease,
-      color 160ms ease;
+      color 160ms ease,
+      opacity 160ms ease;
   }
 
-  .app-primary-button:hover {
+  .app-primary-button:hover,
+  .app-button-primary:hover {
     background: var(--app-primary-hover);
   }
 
-  .app-secondary-button {
+  .app-secondary-button,
+  .app-button-secondary {
     border: 1px solid var(--app-border);
     background: var(--app-surface-muted);
     color: var(--app-text);
@@ -219,22 +335,91 @@ html.dark select {
       color 160ms ease;
   }
 
-  .app-secondary-button:hover {
+  .app-secondary-button:hover,
+  .app-button-secondary:hover {
     background: var(--app-surface-hover);
   }
 
-  .app-input {
+  .app-button-ghost {
+    color: var(--app-text-muted);
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-button-ghost:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text-strong);
+  }
+
+  .app-button-danger {
+    background: var(--app-danger-bg);
+    border: 1px solid var(--app-danger-border);
+    color: var(--app-danger-text);
+  }
+
+  .app-button-danger:hover {
+    filter: brightness(0.98);
+  }
+
+  .app-badge {
     border: 1px solid var(--app-border);
     background: var(--app-surface-muted);
+    color: var(--app-text-muted);
+  }
+
+  .app-badge-success {
+    border-color: var(--app-success-border);
+    background: var(--app-success-bg);
+    color: var(--app-success-text);
+  }
+
+  .app-badge-danger {
+    border-color: var(--app-danger-border);
+    background: var(--app-danger-bg);
+    color: var(--app-danger-text);
+  }
+
+  .app-badge-warning {
+    border-color: var(--app-warning-border);
+    background: var(--app-warning-bg);
+    color: var(--app-warning-text);
+  }
+
+  .app-badge-info {
+    border-color: var(--app-info-border);
+    background: var(--app-info-bg);
+    color: var(--app-info-text);
+  }
+
+  .app-alert-success {
+    border: 1px solid var(--app-success-border);
+    background: var(--app-success-bg);
+    color: var(--app-success-text);
+  }
+
+  .app-alert-danger {
+    border: 1px solid var(--app-danger-border);
+    background: var(--app-danger-bg);
+    color: var(--app-danger-text);
+  }
+
+  .app-alert-warning {
+    border: 1px solid var(--app-warning-border);
+    background: var(--app-warning-bg);
+    color: var(--app-warning-text);
+  }
+
+  .app-alert-info {
+    border: 1px solid var(--app-info-border);
+    background: var(--app-info-bg);
+    color: var(--app-info-text);
+  }
+
+  .app-sidebar {
+    border-color: var(--app-sidebar-border);
+    background: var(--app-sidebar);
     color: var(--app-text);
-  }
-
-  .app-input::placeholder {
-    color: var(--app-text-soft);
-  }
-
-  .app-divider {
-    border-color: var(--app-border-soft);
   }
 
   .app-sidebar-link {
@@ -257,24 +442,36 @@ html.dark select {
 
 /* =========================================================
    Temporary compatibility layer
-   Mantém os componentes antigos legíveis enquanto você migra.
+   Mantém os componentes antigos legíveis enquanto a migração
+   para componentes semânticos acontece por etapas.
    ========================================================= */
 
 /* Backgrounds */
 html.dark .bg-white,
-html.dark .bg-white\/90 {
+html.dark .bg-white\/50,
+html.dark .bg-white\/60,
+html.dark .bg-white\/70,
+html.dark .bg-white\/80,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
   background-color: var(--app-surface) !important;
 }
 
-html.dark .bg-slate-50 {
+html.dark .bg-slate-50,
+html.dark .bg-neutral-50,
+html.dark .bg-zinc-50 {
   background-color: var(--app-surface-muted) !important;
 }
 
-html.dark .bg-slate-100 {
+html.dark .bg-slate-100,
+html.dark .bg-neutral-100,
+html.dark .bg-zinc-100 {
   background-color: var(--app-icon-bg) !important;
 }
 
-html.dark .bg-slate-200 {
+html.dark .bg-slate-200,
+html.dark .bg-neutral-200,
+html.dark .bg-zinc-200 {
   background-color: #444444 !important;
 }
 
@@ -287,19 +484,24 @@ html.dark .dark\:bg-neutral-900 {
   background-color: var(--app-surface) !important;
 }
 
-html.dark .dark\:bg-neutral-800 {
+html.dark .dark\:bg-neutral-800,
+html.dark .dark\:bg-neutral-700\/40 {
   background-color: var(--app-surface-muted) !important;
 }
 
 /* Texts */
 html.dark .text-slate-950,
 html.dark .text-slate-900,
+html.dark .text-neutral-950,
+html.dark .text-neutral-900,
 html.dark .dark\:text-neutral-100 {
   color: var(--app-text-strong) !important;
 }
 
 html.dark .text-slate-800,
 html.dark .text-slate-700,
+html.dark .text-neutral-800,
+html.dark .text-neutral-700,
 html.dark .dark\:text-neutral-200,
 html.dark .dark\:text-neutral-300 {
   color: var(--app-text) !important;
@@ -307,11 +509,14 @@ html.dark .dark\:text-neutral-300 {
 
 html.dark .text-slate-600,
 html.dark .text-slate-500,
+html.dark .text-neutral-600,
+html.dark .text-neutral-500,
 html.dark .dark\:text-neutral-400 {
   color: var(--app-text-muted) !important;
 }
 
 html.dark .text-slate-400,
+html.dark .text-neutral-400,
 html.dark .dark\:text-neutral-500 {
   color: var(--app-text-soft) !important;
 }
@@ -319,13 +524,26 @@ html.dark .dark\:text-neutral-500 {
 /* Borders */
 html.dark .border-slate-100,
 html.dark .border-slate-200,
+html.dark .border-neutral-100,
+html.dark .border-neutral-200,
+html.dark .border-zinc-100,
+html.dark .border-zinc-200,
 html.dark .dark\:border-neutral-800,
-html.dark .dark\:border-neutral-700 {
+html.dark .dark\:border-neutral-700,
+html.dark .dark\:border-neutral-600 {
   border-color: var(--app-border) !important;
 }
 
-html.dark .border-slate-300 {
+html.dark .border-slate-300,
+html.dark .border-neutral-300,
+html.dark .border-zinc-300 {
   border-color: #555555 !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .dark\:divide-neutral-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--app-border-soft) !important;
 }
 
 /* Inputs, selects and textareas */
@@ -342,7 +560,17 @@ html.dark textarea::placeholder {
   color: var(--app-text-soft) !important;
 }
 
+html.dark .focus\:ring-slate-100:focus,
+html.dark .focus\:ring-slate-200:focus,
+html.dark .dark\:focus\:ring-neutral-700:focus {
+  --tw-ring-color: var(--app-focus) !important;
+}
+
 /* Hovers */
+html.dark .hover\:bg-white\/70:hover {
+  background-color: var(--app-surface-hover) !important;
+}
+
 html.dark .hover\:bg-slate-50:hover,
 html.dark .hover\:bg-slate-50\/60:hover,
 html.dark .hover\:bg-neutral-50\/70:hover {
@@ -355,7 +583,8 @@ html.dark .dark\:hover\:bg-neutral-800\/45:hover {
   background-color: var(--app-surface-hover) !important;
 }
 
-html.dark .hover\:text-slate-950:hover {
+html.dark .hover\:text-slate-950:hover,
+html.dark .dark\:hover\:text-neutral-100:hover {
   color: var(--app-text-strong) !important;
 }
 

@@ -126,7 +126,7 @@ export function useCampaignFormController({
     handleMappingStaticValueChange,
     unmappedVariables,
   } = useTemplateVariableMapping({
-    form,
+    campaign,
     templateVariables,
     leadPathOptions,
   });
@@ -196,7 +196,7 @@ export function useCampaignFormController({
       if (unmappedVariables.length > 0) {
         setSubmitError(
           `Mapeie as variáveis do template antes de continuar: ${unmappedVariables
-            .map((variable) => `{{${variable.key}}}`)
+            .map((variable) => `{{${variable}}}`)
             .join(", ")}.`,
         );
 
@@ -217,14 +217,21 @@ export function useCampaignFormController({
   async function submitCampaign(values: CampaignFormValues): Promise<void> {
     setSubmitError(null);
 
+    const createPayload = buildCreateCampaignPayload(values);
+    const updatePayload = buildUpdateCampaignPayload(values);
+
+    console.log("CAMPAIGN FORM VALUES", values);
+    console.log("CREATE CAMPAIGN PAYLOAD", createPayload);
+    console.log("UPDATE CAMPAIGN PAYLOAD", updatePayload);
+
     try {
       if (campaign) {
         await updateCampaign.mutateAsync({
           id: campaign.id,
-          input: buildUpdateCampaignPayload(values),
+          input: updatePayload,
         });
       } else {
-        await createCampaign.mutateAsync(buildCreateCampaignPayload(values));
+        await createCampaign.mutateAsync(createPayload);
       }
 
       onSaved();

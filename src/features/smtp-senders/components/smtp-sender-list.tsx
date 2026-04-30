@@ -46,28 +46,16 @@ function formatDateTime(value?: string | null) {
 
 function getTestStatusBadge(sender: SmtpSender) {
   if (!sender.lastTestStatus) {
-    return (
-      <Badge className="border-slate-200 bg-slate-50 text-slate-600 dark:border-neutral-600 dark:bg-neutral-700/40 dark:text-neutral-200">
-        Não testado
-      </Badge>
-    );
+    return <Badge className="app-badge">Não testado</Badge>;
   }
 
   const normalizedStatus = sender.lastTestStatus.toLowerCase();
 
   if (normalizedStatus === "success" || normalizedStatus === "ok") {
-    return (
-      <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-        Teste OK
-      </Badge>
-    );
+    return <Badge className="app-badge-success">Teste OK</Badge>;
   }
 
-  return (
-    <Badge className="border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-      Teste falhou
-    </Badge>
-  );
+  return <Badge className="app-badge-danger">Teste falhou</Badge>;
 }
 
 export function SmtpSenderList({
@@ -182,8 +170,8 @@ export function SmtpSenderList({
           <div
             className={
               feedback.type === "success"
-                ? "flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
-                : "flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                ? "app-alert-success flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
+                : "app-alert-danger flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
             }
           >
             {feedback.type === "success" ? (
@@ -197,7 +185,7 @@ export function SmtpSenderList({
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="rounded-lg p-1 transition hover:bg-white/70 dark:hover:bg-white/10"
+              className="rounded-lg p-1 transition hover:bg-[var(--app-surface-hover)]"
               aria-label="Fechar aviso"
             >
               <X className="h-4 w-4" />
@@ -224,19 +212,13 @@ export function SmtpSenderList({
                   <h3 className="font-semibold app-heading">{sender.name}</h3>
 
                   {sender.isActive ? (
-                    <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      Ativo
-                    </Badge>
+                    <Badge className="app-badge-success">Ativo</Badge>
                   ) : (
-                    <Badge className="border-slate-200 bg-slate-50 text-slate-600 dark:border-neutral-600 dark:bg-neutral-700/40 dark:text-neutral-200">
-                      Inativo
-                    </Badge>
+                    <Badge className="app-badge">Inativo</Badge>
                   )}
 
                   {sender.secure ? (
-                    <Badge className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
-                      Secure
-                    </Badge>
+                    <Badge className="app-badge-info">Secure</Badge>
                   ) : null}
 
                   {getTestStatusBadge(sender)}

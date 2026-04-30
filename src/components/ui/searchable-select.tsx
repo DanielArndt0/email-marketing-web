@@ -49,31 +49,29 @@ export function SearchableSelect({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex h-10 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 text-left text-sm text-slate-950 outline-none transition hover:bg-slate-50 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+        className="app-input flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-sm"
       >
-        <span className={selectedOption ? "text-slate-950" : "text-slate-400"}>
+        <span className={selectedOption ? "app-heading" : "app-soft"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
 
-        <ChevronDown className="h-4 w-4 text-slate-400" />
+        <ChevronDown className="app-soft h-4 w-4" />
       </button>
 
       {open ? (
-        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-soft">
-          <div className="border-b border-slate-100 p-2">
+        <div className="app-card absolute z-50 mt-2 w-full overflow-hidden rounded-xl">
+          <div className="app-list-header p-2">
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+              className="app-input h-9 w-full rounded-lg px-3 text-sm"
             />
           </div>
 
           <div className="max-h-64 overflow-auto p-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-slate-400">
-                {emptyMessage}
-              </div>
+              <div className="app-soft px-3 py-3 text-sm">{emptyMessage}</div>
             ) : (
               filteredOptions.map((option) => {
                 const selected = option.value === value;
@@ -88,15 +86,15 @@ export function SearchableSelect({
                       setSearch("");
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-slate-50",
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition",
                       selected
-                        ? "font-medium text-slate-950"
-                        : "text-slate-600",
+                        ? "app-heading font-medium"
+                        : "app-muted hover:bg-[var(--app-surface-hover)] hover:text-[var(--app-text-strong)]",
                     )}
                   >
                     <span>
                       {option.label}
-                      <span className="ml-2 text-xs text-slate-400">
+                      <span className="app-soft ml-2 text-xs">
                         {option.value}
                       </span>
                     </span>

@@ -314,7 +314,7 @@ export function CampaignLinksStep({
                         Variável
                       </p>
 
-                      <div className="mt-2 rounded-xl border bg-white px-3 py-2 font-mono text-sm dark:bg-transparent">
+                      <div className="app-card-flat mt-2 rounded-xl px-3 py-2 font-mono text-sm">
                         {"{{" + variable.key + "}}"}
                       </div>
                     </div>
