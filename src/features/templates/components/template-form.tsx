@@ -254,6 +254,7 @@ export function TemplateForm({
                 error={form.formState.errors.name?.message}
               >
                 <Input
+                  className="app-input-surface"
                   placeholder="Ex: Oferta Grupo Expand"
                   {...form.register("name")}
                 />
@@ -264,6 +265,7 @@ export function TemplateForm({
                 error={form.formState.errors.subject?.message}
               >
                 <Input
+                  className="app-input-surface"
                   placeholder="Ex: Uma alternativa para expandir sua empresa"
                   {...form.register("subject")}
                 />
@@ -273,6 +275,7 @@ export function TemplateForm({
             <div className="mt-4">
               <FormField label="Variáveis permitidas">
                 <Input
+                  className="app-input-surface"
                   placeholder="Ex: name, company, link"
                   {...form.register("variables")}
                 />
@@ -285,7 +288,7 @@ export function TemplateForm({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-2xl app-card-muted p-4 shadow-sm">
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-base font-semibold text-slate-950">
@@ -297,14 +300,14 @@ export function TemplateForm({
                 </p>
               </div>
 
-              <div className="flex shrink-0 items-center gap-2 rounded-2xl bg-slate-100 p-1">
+              <div className="app-segmented">
                 <button
                   type="button"
                   onClick={() => setContentMode("html")}
                   className={
                     contentMode === "html"
-                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-neutral-800 px-4 text-sm font-medium text-white shadow-sm"
-                      : "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium text-slate-600 transition hover:bg-white"
+                      ? "app-segmented-item app-segmented-item-active"
+                      : "app-segmented-item"
                   }
                 >
                   <Code2 className="h-4 w-4" />
@@ -316,8 +319,8 @@ export function TemplateForm({
                   onClick={() => setContentMode("text")}
                   className={
                     contentMode === "text"
-                      ? "inline-flex h-10 items-center gap-2 rounded-xl bg-neutral-800 px-4 text-sm font-medium text-white shadow-sm"
-                      : "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-medium text-slate-600 transition hover:bg-white"
+                      ? "app-segmented-item app-segmented-item-active"
+                      : "app-segmented-item"
                   }
                 >
                   Texto puro
@@ -327,7 +330,7 @@ export function TemplateForm({
 
             {contentMode === "html" ? (
               <div className="space-y-4">
-                <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-2xl app-card-flat p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-800">
                       Editor HTML
@@ -345,7 +348,7 @@ export function TemplateForm({
                     <input
                       type="file"
                       accept=".html,.htm,text/html"
-                      className="sr-only"
+                      className="sr-only app-input-muted"
                       onChange={(event) =>
                         handleHtmlFileChange(event.target.files?.[0])
                       }
@@ -354,7 +357,7 @@ export function TemplateForm({
                 </div>
 
                 {htmlFileName ? (
-                  <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  <p className="rounded-xl app-card-flat px-3 py-2 text-xs text-slate-500">
                     Arquivo importado:{" "}
                     <span className="font-medium text-slate-700">
                       {htmlFileName}
@@ -368,7 +371,7 @@ export function TemplateForm({
                 >
                   <Textarea
                     wrap="off"
-                    className="h-[360px] max-h-[360px] resize-none overflow-auto rounded-xl bg-slate-50 font-mono text-sm leading-6 text-slate-800"
+                    className="h-[360px] max-h-[360px] resize-none overflow-auto rounded-xl app-input-surface font-mono text-sm leading-6 text-slate-800"
                     placeholder="<h1>Olá {{name}}</h1><p>Veja nossa oferta: {{link}}</p>"
                     {...form.register("html")}
                   />
@@ -380,7 +383,7 @@ export function TemplateForm({
                 error={form.formState.errors.text?.message}
               >
                 <Textarea
-                  className="h-[360px] max-h-[360px] resize-none overflow-auto rounded-xl bg-slate-50 text-sm leading-6 text-slate-800"
+                  className="h-[360px] max-h-[360px] resize-none overflow-auto rounded-xl app-input-surface text-sm leading-6 text-slate-800"
                   placeholder="Olá {{name}}, veja nossa oferta: {{link}}"
                   {...form.register("text")}
                 />
@@ -413,26 +416,32 @@ export function TemplateForm({
               </p>
             </div>
 
-            <div className="flex shrink-0 gap-2">
-              <Button
+            <div className="app-segmented">
+              <button
                 type="button"
-                size="sm"
-                variant={previewMode === "visual" ? "default" : "secondary"}
                 onClick={() => setPreviewMode("visual")}
+                className={
+                  previewMode === "visual"
+                    ? "app-segmented-item app-segmented-item-active"
+                    : "app-segmented-item"
+                }
               >
                 <Eye className="h-4 w-4" />
                 Visual
-              </Button>
+              </button>
 
-              <Button
+              <button
                 type="button"
-                size="sm"
-                variant={previewMode === "code" ? "default" : "secondary"}
                 onClick={() => setPreviewMode("code")}
+                className={
+                  previewMode === "code"
+                    ? "app-segmented-item app-segmented-item-active"
+                    : "app-segmented-item"
+                }
               >
                 <Code2 className="h-4 w-4" />
                 Código
-              </Button>
+              </button>
             </div>
           </div>
 

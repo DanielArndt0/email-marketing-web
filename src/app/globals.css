@@ -231,7 +231,7 @@ html.dark select {
 
   .app-empty-state {
     border: 1px dashed var(--app-border);
-    background: var(--app-surface-muted);
+    background: var(--app-surface);
     color: var(--app-text);
   }
 
@@ -408,57 +408,146 @@ html.dark select {
     color: var(--app-text);
   }
 
-  .app-primary-button,
-  .app-button-primary {
-    background: var(--app-primary);
-    color: var(--app-primary-contrast);
+  .app-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid transparent;
+    font-weight: 600;
+    outline: none;
     transition:
       background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
       color 160ms ease,
       opacity 160ms ease;
   }
 
+  .app-button:focus,
+  .app-button:focus-visible {
+    box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-button:disabled,
+  .app-button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .app-primary-button,
+  .app-button-primary {
+    border-color: var(--app-primary);
+    background-color: var(--app-primary);
+    color: var(--app-primary-contrast);
+  }
+
   .app-primary-button:hover,
   .app-button-primary:hover {
-    background: var(--app-primary-hover);
+    background-color: var(--app-primary-hover);
+    border-color: var(--app-primary-hover);
   }
 
   .app-secondary-button,
-  .app-button-secondary {
-    border: 1px solid var(--app-border);
-    background: var(--app-surface-muted);
+  .app-button-secondary,
+  .app-button-muted {
+    border-color: var(--app-border);
+    background-color: var(--app-surface-muted);
     color: var(--app-text);
-    transition:
-      background-color 160ms ease,
-      border-color 160ms ease,
-      color 160ms ease;
   }
 
   .app-secondary-button:hover,
-  .app-button-secondary:hover {
-    background: var(--app-surface-hover);
+  .app-button-secondary:hover,
+  .app-button-muted:hover {
+    background-color: var(--app-surface-hover);
+    color: var(--app-text-strong);
+  }
+
+  .app-button-surface {
+    border-color: var(--app-border);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+  }
+
+  .app-button-surface:hover {
+    background-color: var(--app-surface-hover);
+    color: var(--app-text-strong);
+  }
+
+  .app-button-soft {
+    border-color: var(--app-border-soft);
+    background-color: transparent;
+    color: var(--app-text-muted);
+  }
+
+  .app-button-soft:hover {
+    background-color: var(--app-surface-hover);
+    color: var(--app-text-strong);
   }
 
   .app-button-ghost {
+    border-color: transparent;
+    background-color: transparent;
     color: var(--app-text-muted);
-    transition:
-      background-color 160ms ease,
-      color 160ms ease;
   }
 
   .app-button-ghost:hover {
-    background: var(--app-surface-hover);
+    background-color: var(--app-surface-hover);
     color: var(--app-text-strong);
   }
 
   .app-button-danger {
-    background: var(--app-danger-bg);
-    border: 1px solid var(--app-danger-border);
+    border-color: var(--app-danger-border);
+    background-color: var(--app-danger-bg);
     color: var(--app-danger-text);
   }
 
   .app-button-danger:hover {
     filter: brightness(0.98);
+  }
+
+  .app-segmented {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 1rem;
+    background-color: var(--app-surface-muted);
+    padding: 0.25rem;
+  }
+
+  .app-segmented-item {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding-inline: 1rem;
+    color: var(--app-text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    outline: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .app-segmented-item:hover {
+    background-color: var(--app-surface);
+    color: var(--app-text-strong);
+  }
+
+  .app-segmented-item-active {
+    background-color: var(--app-primary);
+    color: var(--app-primary-contrast);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+
+  .app-segmented-item-active:hover {
+    background-color: var(--app-primary-hover);
+    color: var(--app-primary-contrast);
   }
 
   .app-badge {

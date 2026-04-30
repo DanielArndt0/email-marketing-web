@@ -18,12 +18,6 @@ function asString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-function asStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
-}
-
 function normalizeTemplate(raw: unknown): EmailTemplate {
   const item = asRecord(raw);
 

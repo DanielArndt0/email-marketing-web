@@ -49,7 +49,7 @@ export function SearchableSelect({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="app-input flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-sm"
+        className="app-input-surface flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-sm"
       >
         <span className={selectedOption ? "app-heading" : "app-soft"}>
           {selectedOption ? selectedOption.label : placeholder}

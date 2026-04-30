@@ -531,6 +531,7 @@ export function AudienceForm({
                   error={form.formState.errors.name?.message}
                 >
                   <Input
+                    className="app-input-surface"
                     placeholder="Ex: Empresas de tecnologia em Londrina"
                     {...form.register("name")}
                   />
@@ -546,14 +547,14 @@ export function AudienceForm({
                   >
                     <option value="cnpj-api">CNPJ API</option>
                     <option value="csv-import">CSV import</option>
-                    <option value="manual-list">Lista manual</option>
+                    <option value="manual-list"></option>
                   </select>
                 </FormField>
 
                 <FormField label="Descrição">
                   <Textarea
                     placeholder="Ex: Público usado para campanha de prospecção regional."
-                    className="min-h-[126px] max-h-[220px] resize-none overflow-auto"
+                    className="min-h-[126px] max-h-[220px] resize-none overflow-auto app-input-surface"
                     {...form.register("description")}
                   />
                 </FormField>
@@ -614,17 +615,24 @@ export function AudienceForm({
 
                     <FormField label="Município">
                       <Input
+                        className="app-input-surface"
                         placeholder="Londrina"
                         {...form.register("municipio")}
                       />
                     </FormField>
 
                     <FormField label="Página">
-                      <Input type="number" min={1} {...form.register("page")} />
+                      <Input
+                        className="app-input-surface"
+                        type="number"
+                        min={1}
+                        {...form.register("page")}
+                      />
                     </FormField>
 
                     <FormField label="Limite">
                       <Input
+                        className="app-input-surface"
                         type="number"
                         min={1}
                         max={500}
@@ -638,6 +646,7 @@ export function AudienceForm({
                         error={form.formState.errors.codigosCnae?.message}
                       >
                         <Input
+                          className="app-input-surface"
                           placeholder="6201501, 6202300"
                           {...form.register("codigosCnae")}
                         />
@@ -650,6 +659,7 @@ export function AudienceForm({
                         error={form.formState.errors.razaoSocial?.message}
                       >
                         <Input
+                          className="app-input-surface"
                           placeholder="Ex: tecnologia"
                           {...form.register("razaoSocial")}
                         />
@@ -662,6 +672,7 @@ export function AudienceForm({
                         error={form.formState.errors.nomeSocio?.message}
                       >
                         <Input
+                          className="app-input-surface"
                           placeholder="Ex: João Silva"
                           {...form.register("nomeSocio")}
                         />
@@ -715,13 +726,13 @@ export function AudienceForm({
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mt-6 rounded-2xl app-card-muted p-4">
                   <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(180px,1fr)_140px_120px]">
                     <FormField label="Arquivo CSV">
                       <Input
                         type="file"
                         accept=".csv,text/csv"
-                        className="h-auto py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium"
+                        className="h-auto py-2 app-input-surface file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium"
                         onChange={handleCsvFileChange}
                       />
                     </FormField>
@@ -731,17 +742,23 @@ export function AudienceForm({
                       error={form.formState.errors.emailColumn?.message}
                     >
                       <Input
+                        className="app-input-surface"
                         placeholder="email"
                         {...form.register("emailColumn")}
                       />
                     </FormField>
 
                     <FormField label="Delimitador">
-                      <Input placeholder="," {...form.register("delimiter")} />
+                      <Input
+                        className="app-input-surface"
+                        placeholder=","
+                        {...form.register("delimiter")}
+                      />
                     </FormField>
 
                     <FormField label="Limite">
                       <Input
+                        className="app-input-surface"
                         type="number"
                         min={1}
                         max={500}
@@ -751,7 +768,7 @@ export function AudienceForm({
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mt-5 rounded-2xl app-card-muted p-4">
                   <div className="mb-4">
                     <h4 className="text-lg font-semibold text-slate-950">
                       Conteúdo do CSV
@@ -772,7 +789,7 @@ export function AudienceForm({
                       error={form.formState.errors.csvContent?.message}
                     >
                       <Textarea
-                        className="min-h-[260px] max-h-[520px] resize-none overflow-auto font-mono text-[14px] leading-7"
+                        className="app-input-surface min-h-[260px] max-h-[520px] resize-none overflow-auto font-mono text-[14px] leading-7"
                         placeholder={`email,nome,empresa\ncontato@empresa.com,João,Empresa A`}
                         {...form.register("csvContent")}
                       />
@@ -841,7 +858,7 @@ export function AudienceForm({
             ) : null}
 
             {sourceType === "manual-list" ? (
-              <div className="rounded-3xl border border-slate-200 bg-white p-5">
+              <div className="rounded-3xl app-card-muted p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h3 className="text-2xl font-semibold text-slate-950">
@@ -867,12 +884,13 @@ export function AudienceForm({
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mt-6 rounded-2xl app-card-flat p-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                     <div className="w-full lg:max-w-md">
                       <FormField label="Nova variável / coluna">
                         <div className="flex gap-2">
                           <Input
+                            className="app-input-muted"
                             value={newColumnName}
                             onChange={(event) =>
                               setNewColumnName(event.target.value)
@@ -940,7 +958,7 @@ export function AudienceForm({
                                           event.target.value,
                                         )
                                       }
-                                      className="min-w-[150px]"
+                                      className="min-w-[150px] app-input-surface"
                                     />
 
                                     <button

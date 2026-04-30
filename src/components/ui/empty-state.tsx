@@ -10,7 +10,7 @@ export function EmptyState({
       <h2 className="app-heading text-lg font-semibold">{title}</h2>
 
       {description ? (
-        <p className="app-muted mx-auto mt-2 max-w-2xl text-sm leading-6">
+        <p className="app-text-muted mx-auto mt-2 max-w-2xl text-sm leading-6">
           {description}
         </p>
       ) : null}

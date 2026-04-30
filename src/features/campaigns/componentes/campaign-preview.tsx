@@ -6,7 +6,7 @@ import {
   FileText,
   Info,
   Layers3,
-  PlayCircle,
+  AtSign,
   Send,
   Target,
   Users,
@@ -60,21 +60,6 @@ function getStatusClassName(status: CampaignStatus) {
   return classes[status] ?? classes.draft;
 }
 
-function getNextActionLabel(status: CampaignStatus) {
-  const actions: Record<CampaignStatus, string> = {
-    draft: "Revisar dados e iniciar envios",
-    ready: "Iniciar envios",
-    scheduled: "Aguardar agendamento ou revisar data",
-    running: "Acompanhar dispatches",
-    paused: "Retomar ou revisar campanha",
-    completed: "Ver histórico de dispatches",
-    canceled: "Campanha encerrada",
-    failed: "Revisar erro e tentar novamente",
-  };
-
-  return actions[status] ?? "Revisar campanha";
-}
-
 function canDispatch(status: CampaignStatus) {
   return status === "draft" || status === "ready" || status === "scheduled";
 }
@@ -102,6 +87,20 @@ function getTemplateName(campaign: Campaign) {
 
 function getAudienceName(campaign: Campaign) {
   return campaign.audience?.name ?? campaign.audienceId ?? "Sem audience";
+}
+
+function getAudienceSourceType(campaign: Campaign) {
+  return campaign.audience?.sourceType ?? campaign.audienceId ?? "Sem audience";
+}
+
+function getSmtpSenderName(campaign: Campaign) {
+  return campaign.smtpSender?.name ?? campaign.smtpSenderId ?? "Sem remetente";
+}
+
+function getSmtpSenderEmail(campaign: Campaign) {
+  return (
+    campaign.smtpSender?.fromEmail ?? campaign.smtpSenderId ?? "Sem remetente"
+  );
 }
 
 function getMappingSourceLabel(mapping: TemplateVariableMapping) {
@@ -257,7 +256,14 @@ export function CampaignPreview({
             icon={Users}
             label="Audience"
             value={getAudienceName(campaign)}
-            description="Público vinculado."
+            description={getAudienceSourceType(campaign)}
+          />
+
+          <InfoCard
+            icon={AtSign}
+            label="Remetente"
+            value={getSmtpSenderName(campaign)}
+            description={getSmtpSenderEmail(campaign)}
           />
 
           <InfoCard
@@ -266,34 +272,10 @@ export function CampaignPreview({
             value={formatDateTime(campaign.scheduleAt)}
             description="Data programada."
           />
-
-          <section className="flex h-full min-h-[138px] flex-col rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="flex items-center gap-2">
-              <PlayCircle className="h-4 w-4 text-slate-400" />
-
-              <h3 className="font-semibold text-slate-950">Próxima ação</h3>
-            </div>
-
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              {getNextActionLabel(campaign.status)}
-            </p>
-
-            {showDispatchButton ? (
-              <Button
-                type="button"
-                className="mt-auto w-full"
-                onClick={() => onDispatch?.(campaign)}
-                disabled={isDispatching}
-              >
-                <Send className="h-4 w-4" />
-                {isDispatching ? "Iniciando..." : "Iniciar envios"}
-              </Button>
-            ) : null}
-          </section>
         </div>
 
         <div className="grid items-stretch gap-5 xl:auto-rows-fr xl:grid-cols-[290px_minmax(0,1fr)_290px]">
-          <section className="flex h-full min-h-[260px] flex-col rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="flex h-full min-h-[260px] flex-col rounded-2xl app-card-muted p-5">
             <div className="flex items-center gap-2">
               <Layers3 className="h-4 w-4 text-slate-400" />
 
@@ -412,7 +394,10 @@ export function CampaignPreview({
                 value={campaign.audienceId ?? "Não informado"}
               />
 
-              <DetailRow label="Status" value={campaign.status} />
+              <DetailRow
+                label="Remetente ID"
+                value={campaign.smtpSenderId ?? "Não informado"}
+              />
             </div>
           </section>
         </div>

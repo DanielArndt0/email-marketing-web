@@ -2,7 +2,6 @@
 
 import { ArrowRight, FileText, Mail, Sparkles, Users } from "lucide-react";
 
-import type { SmtpSender } from "@/features/smtp-senders/types";
 import type { CampaignStepProps } from "../../campaign-form.types";
 import type { TemplateVariableMapping } from "../../../../types";
 
