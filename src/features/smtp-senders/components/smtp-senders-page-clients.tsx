@@ -57,15 +57,15 @@ export function SmtpSendersPageClient() {
 
       {showForm ? (
         <SmtpSenderForm sender={editingSender} onCancel={handleCloseForm} />
-      ) : null}
-
-      <SmtpSenderList
-        senders={senders}
-        total={response?.total ?? senders.length}
-        isLoading={smtpSendersQuery.isLoading}
-        isError={smtpSendersQuery.isError}
-        onEdit={handleEdit}
-      />
+      ) : (
+        <SmtpSenderList
+          senders={senders}
+          total={response?.total ?? senders.length}
+          isLoading={smtpSendersQuery.isLoading}
+          isError={smtpSendersQuery.isError}
+          onEdit={handleEdit}
+        />
+      )}
     </div>
   );
 }
