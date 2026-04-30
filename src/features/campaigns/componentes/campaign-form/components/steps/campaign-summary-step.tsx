@@ -58,7 +58,7 @@ export function CampaignSummaryStep({
         </Badge>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="mt-5 space-y-4">
         <div className="space-y-5">
           <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -97,13 +97,13 @@ export function CampaignSummaryStep({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
               Vínculos
             </p>
 
             <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-slate-400" />
 
@@ -121,7 +121,7 @@ export function CampaignSummaryStep({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-slate-400" />
 
@@ -141,7 +141,7 @@ export function CampaignSummaryStep({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-slate-400" />
 
@@ -162,7 +162,7 @@ export function CampaignSummaryStep({
               </div>
             </div>
 
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mt-4 rounded-xl border border-slate-200  bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Mapeamento
               </p>
@@ -172,7 +172,7 @@ export function CampaignSummaryStep({
                   {mappings.map(([variable, mapping]) => (
                     <div
                       key={variable}
-                      className="grid gap-2 rounded-lg border border-slate-200 bg-white p-3 text-sm md:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] md:items-center"
+                      className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm md:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] md:items-center"
                     >
                       <span className="font-mono font-medium text-slate-900">
                         {"{{" + variable + "}}"}
@@ -196,47 +196,6 @@ export function CampaignSummaryStep({
             </div>
           </section>
         </div>
-
-        <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <h4 className="text-base font-semibold text-slate-950">
-            Pronto para salvar
-          </h4>
-
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            A campanha será criada com os dados informados e ficará disponível
-            na listagem para ajustes futuros.
-          </p>
-
-          <div className="mt-5 space-y-3 text-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <span className="text-slate-500">Status</span>
-              <span className="font-medium text-slate-950">
-                {getStatusLabel(watchedStatus)}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <span className="text-slate-500">Template</span>
-              <span className="max-w-[160px] truncate font-medium text-slate-950">
-                {selectedTemplate?.name || "—"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Audience</span>
-              <span className="max-w-[160px] truncate font-medium text-slate-950">
-                {selectedAudience?.name || "—"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Remetente</span>
-              <span className="max-w-[160px] truncate font-medium text-slate-950">
-                {selectedSmtpSender?.name || "—"}
-              </span>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
   );
