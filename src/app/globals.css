@@ -287,7 +287,39 @@ html.dark select {
     box-shadow: 0 0 0 3px var(--app-focus);
   }
 
-  .app-input {
+  .app-control {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--app-border);
+    color: var(--app-text-strong);
+    outline: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-control::placeholder {
+    color: var(--app-text-soft);
+  }
+
+  .app-control:focus,
+  .app-control:focus-visible {
+    border-color: var(--app-text-soft);
+    box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-control-surface {
+    background: var(--app-surface);
+  }
+
+  .app-control-muted {
+    background: var(--app-surface-muted);
+  }
+
+  .app-input,
+  .app-input-muted {
     border: 1px solid var(--app-border);
     background: var(--app-surface-muted);
     color: var(--app-text-strong);
@@ -299,14 +331,81 @@ html.dark select {
       color 160ms ease;
   }
 
-  .app-input::placeholder {
+  .app-input-surface {
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text-strong);
+    outline: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-input::placeholder,
+  .app-input-muted::placeholder,
+  .app-input-surface::placeholder {
     color: var(--app-text-soft);
   }
 
   .app-input:focus,
-  .app-input:focus-visible {
+  .app-input:focus-visible,
+  .app-input-muted:focus,
+  .app-input-muted:focus-visible,
+  .app-input-surface:focus,
+  .app-input-surface:focus-visible {
     border-color: var(--app-text-soft);
     box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-select,
+  .app-select-surface {
+    height: 2.75rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    padding-inline: 0.75rem;
+    color: var(--app-text);
+    font-size: 0.875rem;
+    outline: none;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-select-muted {
+    height: 2.75rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--app-border);
+    background: var(--app-surface-muted);
+    padding-inline: 0.75rem;
+    color: var(--app-text);
+    font-size: 0.875rem;
+    outline: none;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-select:focus,
+  .app-select-surface:focus,
+  .app-select-muted:focus {
+    border-color: var(--app-text-soft);
+    box-shadow: 0 0 0 3px var(--app-focus);
+  }
+
+  .app-select option,
+  .app-select-surface option,
+  .app-select-muted option {
+    background: var(--app-surface);
+    color: var(--app-text);
   }
 
   .app-primary-button,
@@ -363,32 +462,68 @@ html.dark select {
   }
 
   .app-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    border-radius: 999px;
     border: 1px solid var(--app-border);
-    background: var(--app-surface-muted);
+    background-color: var(--app-surface-muted);
     color: var(--app-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .app-badge-surface {
+    border-color: var(--app-border);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+  }
+
+  .app-badge-muted {
+    border-color: var(--app-border);
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+  }
+
+  .app-badge-soft {
+    border-color: var(--app-border-soft);
+    background-color: transparent;
+    color: var(--app-text-muted);
+  }
+
+  .app-badge-strong {
+    border-color: var(--app-primary);
+    background-color: var(--app-primary);
+    color: var(--app-primary-contrast);
   }
 
   .app-badge-success {
     border-color: var(--app-success-border);
-    background: var(--app-success-bg);
+    background-color: var(--app-success-bg);
     color: var(--app-success-text);
   }
 
   .app-badge-danger {
     border-color: var(--app-danger-border);
-    background: var(--app-danger-bg);
+    background-color: var(--app-danger-bg);
     color: var(--app-danger-text);
   }
 
   .app-badge-warning {
     border-color: var(--app-warning-border);
-    background: var(--app-warning-bg);
+    background-color: var(--app-warning-bg);
     color: var(--app-warning-text);
   }
 
   .app-badge-info {
     border-color: var(--app-info-border);
-    background: var(--app-info-bg);
+    background-color: var(--app-info-bg);
     color: var(--app-info-text);
   }
 
@@ -547,9 +682,14 @@ html.dark .dark\:divide-neutral-800 > :not([hidden]) ~ :not([hidden]) {
 }
 
 /* Inputs, selects and textareas */
-html.dark input,
-html.dark textarea,
-html.dark select {
+/* Inputs, selects and textareas */
+html.dark input:not(.app-input):not(.app-input-muted):not(.app-input-surface),
+html.dark
+  textarea:not(.app-input):not(.app-input-muted):not(.app-input-surface),
+html.dark
+  select:not(.app-select):not(.app-select-muted):not(.app-select-surface):not(
+    .app-input
+  ):not(.app-input-muted):not(.app-input-surface) {
   background-color: var(--app-surface-muted) !important;
   border-color: var(--app-border) !important;
   color: var(--app-text-strong) !important;

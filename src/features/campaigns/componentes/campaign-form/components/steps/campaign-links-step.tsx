@@ -52,10 +52,6 @@ function getMappingValue(mapping?: TemplateVariableMapping) {
   return "";
 }
 
-function getSmtpSenderLabel(sender: SmtpSender) {
-  return `${sender.name} — ${sender.fromName} <${sender.fromEmail}>`;
-}
-
 export function CampaignLinksStep({
   form,
   templates,
@@ -95,7 +91,7 @@ export function CampaignLinksStep({
                   shouldValidate: true,
                 })
               }
-              className="app-input mt-2 h-11 w-full rounded-xl px-3 text-sm"
+              className="app-select-surface mt-2 h-11 w-full rounded-xl px-3 text-sm"
             >
               <option value="">Selecione um template</option>
 
@@ -118,7 +114,7 @@ export function CampaignLinksStep({
                   shouldValidate: true,
                 })
               }
-              className="app-input mt-2 h-11 w-full rounded-xl px-3 text-sm"
+              className="app-select-surface mt-2 h-11 w-full rounded-xl px-3 text-sm"
             >
               <option value="">Selecione uma audience</option>
 
@@ -143,7 +139,7 @@ export function CampaignLinksStep({
                   shouldValidate: true,
                 })
               }
-              className="app-input mt-2 h-11 w-full rounded-xl px-3 text-sm"
+              className="app-select-surface mt-2 h-11 w-full rounded-xl px-3 text-sm"
             >
               <option value="">Selecione um remetente</option>
 
@@ -332,7 +328,7 @@ export function CampaignLinksStep({
                             event.target.value as "lead" | "static",
                           )
                         }
-                        className="app-input mt-2 h-10 w-full rounded-xl px-3 text-sm"
+                        className="app-select-surface mt-2 h-10 w-full rounded-xl px-3 text-sm"
                       >
                         <option value="lead">Lead</option>
                         <option value="static">Valor fixo</option>
@@ -341,7 +337,7 @@ export function CampaignLinksStep({
 
                     <div className="hidden justify-center pb-2 lg:flex">
                       <div className="grid h-9 w-9 place-items-center rounded-full border app-card-flat">
-                        <ArrowRight className="h-4 w-4 app-soft" />
+                        <ArrowRight className="h-4 w-4 --app-bg" />
                       </div>
                     </div>
 
@@ -359,7 +355,7 @@ export function CampaignLinksStep({
                               event.target.value,
                             )
                           }
-                          className="app-input mt-2 h-10 w-full rounded-xl px-3 text-sm"
+                          className="app-select-surface mt-2 h-10 w-full rounded-xl px-3 text-sm"
                         >
                           <option value="">Selecione um path</option>
 
@@ -379,7 +375,7 @@ export function CampaignLinksStep({
                             )
                           }
                           placeholder="Digite o valor fixo"
-                          className="app-input mt-2 h-10 w-full rounded-xl px-3 text-sm"
+                          className="app-input-surface mt-2 h-10 w-full rounded-xl px-3 text-sm"
                         />
                       )}
                     </div>

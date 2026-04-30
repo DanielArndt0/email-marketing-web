@@ -41,7 +41,7 @@ export function CampaignSummaryStep({
   const mappings = Object.entries(templateVariableMappings);
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5">
+    <section className="rounded-3xl app-card-flat p-5">
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-xl font-semibold text-slate-950">
@@ -60,7 +60,7 @@ export function CampaignSummaryStep({
 
       <div className="mt-5 space-y-4">
         <div className="space-y-5">
-          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <section className="rounded-2xl app-card-muted p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
               Campanha
             </p>
@@ -74,7 +74,7 @@ export function CampaignSummaryStep({
             </p>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl app-card-flat p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Assunto
                 </p>
@@ -84,7 +84,7 @@ export function CampaignSummaryStep({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl app-card-flat p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Agendamento
                 </p>
@@ -97,13 +97,13 @@ export function CampaignSummaryStep({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <section className="rounded-2xl app-card-muted p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
               Vínculos
             </p>
 
             <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl app-card-flat p-4">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-slate-400" />
 
@@ -121,7 +121,7 @@ export function CampaignSummaryStep({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl app-card-flat p-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-slate-400" />
 
@@ -141,7 +141,7 @@ export function CampaignSummaryStep({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="rounded-xl app-card-flat p-4">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-slate-400" />
 
@@ -162,7 +162,7 @@ export function CampaignSummaryStep({
               </div>
             </div>
 
-            <div className="mt-4 rounded-xl border border-slate-200  bg-white p-4">
+            <div className="mt-4 rounded-xl app-card-flat p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                 Mapeamento
               </p>
@@ -172,13 +172,13 @@ export function CampaignSummaryStep({
                   {mappings.map(([variable, mapping]) => (
                     <div
                       key={variable}
-                      className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm md:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] md:items-center"
+                      className="grid gap-2 rounded-lg app-card-muted p-3 text-sm md:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] md:items-center"
                     >
                       <span className="font-mono font-medium text-slate-900">
                         {"{{" + variable + "}}"}
                       </span>
 
-                      <Badge className="w-fit bg-slate-50 text-slate-600">
+                      <Badge className="w-fit app-badge-surface text-slate-600">
                         {getMappingSourceLabel(mapping)}
                       </Badge>
 

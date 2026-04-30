@@ -28,7 +28,7 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
           <Input
             {...form.register("name")}
             placeholder="Ex: Campanha B2B Londrina"
-            className="mt-2 app-input"
+            className="mt-2 app-input-surface"
           />
 
           {errors.name?.message ? (
@@ -44,7 +44,7 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
           <Input
             {...form.register("subject")}
             placeholder="Ex: Uma oportunidade para sua empresa"
-            className="mt-2 app-input"
+            className="mt-2 app-input-surface"
           />
 
           {errors.subject?.message ? (
@@ -60,7 +60,7 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
           <textarea
             {...form.register("goal")}
             placeholder="Ex: Prospecção de empresas de tecnologia no Paraná."
-            className="app-input mt-2 min-h-[122px] w-full resize-none rounded-xl px-3 py-3 text-sm outline-none transition focus:ring-2 focus:ring-slate-200 dark:focus:ring-neutral-700"
+            className="app-input-surface mt-2 min-h-[122px] w-full resize-none rounded-xl px-3 py-3 text-sm outline-none transition focus:ring-2 focus:ring-slate-200 dark:focus:ring-neutral-700"
           />
 
           {errors.goal?.message ? (
@@ -76,7 +76,7 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
 
             <select
               {...form.register("status")}
-              className="app-input mt-2 h-11 w-full rounded-xl px-3 text-sm outline-none transition focus:ring-2 focus:ring-slate-200 dark:focus:ring-neutral-700"
+              className="app-select-surface mt-2 h-11 w-full rounded-xl px-3 text-sm outline-none transition focus:ring-2 focus:ring-slate-200 dark:focus:ring-neutral-700"
             >
               <option value="draft">Rascunho</option>
               <option value="ready">Pronta</option>
@@ -103,7 +103,7 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
             <Input
               type="datetime-local"
               {...form.register("scheduleAt")}
-              className="mt-2 app-input"
+              className="mt-2 app-input-surface"
             />
 
             {errors.scheduleAt?.message ? (
