@@ -1,4 +1,4 @@
-import { CalendarClock, FileText, Users } from "lucide-react";
+import { CalendarClock, FileText, Mail, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -29,6 +29,7 @@ export function CampaignSummaryStep({
   form,
   selectedTemplate,
   selectedAudience,
+  selectedSmtpSender,
   templateVariableMappings,
 }: CampaignSummaryStepProps) {
   const watchedName = form.watch("name");
@@ -101,7 +102,7 @@ export function CampaignSummaryStep({
               Vínculos
             </p>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-slate-400" />
@@ -137,6 +138,26 @@ export function CampaignSummaryStep({
                   {selectedAudience
                     ? `Origem: ${selectedAudience.sourceType}`
                     : "Sem origem"}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-slate-400" />
+
+                  <p className="text-sm font-semibold text-slate-950">
+                    Remetente
+                  </p>
+                </div>
+
+                <p className="mt-2 text-sm text-slate-700">
+                  {selectedSmtpSender?.name || "Não selecionado"}
+                </p>
+
+                <p className="mt-1 line-clamp-1 text-xs text-slate-400">
+                  {selectedSmtpSender
+                    ? `${selectedSmtpSender.fromName} <${selectedSmtpSender.fromEmail}>`
+                    : "Sem remetente SMTP"}
                 </p>
               </div>
             </div>
@@ -205,6 +226,13 @@ export function CampaignSummaryStep({
               <span className="text-slate-500">Audience</span>
               <span className="max-w-[160px] truncate font-medium text-slate-950">
                 {selectedAudience?.name || "—"}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">Remetente</span>
+              <span className="max-w-[160px] truncate font-medium text-slate-950">
+                {selectedSmtpSender?.name || "—"}
               </span>
             </div>
           </div>
