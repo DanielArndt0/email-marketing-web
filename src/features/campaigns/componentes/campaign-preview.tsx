@@ -3,18 +3,14 @@
 import type { ElementType } from "react";
 import {
   CalendarClock,
-  CheckCircle2,
-  Clock,
   FileText,
   Info,
   Layers3,
   PlayCircle,
-  RefreshCcw,
   Send,
   Target,
   Users,
   X,
-  XCircle,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -62,42 +58,6 @@ function getStatusClassName(status: CampaignStatus) {
   };
 
   return classes[status] ?? classes.draft;
-}
-
-function getStatusIcon(status: CampaignStatus) {
-  if (status === "completed") {
-    return CheckCircle2;
-  }
-
-  if (status === "failed" || status === "canceled") {
-    return XCircle;
-  }
-
-  if (status === "running") {
-    return RefreshCcw;
-  }
-
-  return Clock;
-}
-
-function getStatusDescription(status: CampaignStatus) {
-  const descriptions: Record<CampaignStatus, string> = {
-    draft:
-      "A campanha ainda está em rascunho e pode ser ajustada antes da execução.",
-    ready:
-      "A campanha está pronta para iniciar a criação e enfileiramento dos dispatches.",
-    scheduled: "A campanha possui uma data programada para execução futura.",
-    running: "Os dispatches foram criados ou estão sendo processados.",
-    paused:
-      "A campanha está pausada. Os envios não devem continuar até uma retomada.",
-    completed:
-      "A campanha foi concluída. Consulte os dispatches para acompanhar o histórico.",
-    canceled: "A campanha foi cancelada e não deve seguir para execução.",
-    failed:
-      "A campanha falhou durante a preparação ou execução dos dispatches.",
-  };
-
-  return descriptions[status] ?? "Status operacional da campanha.";
 }
 
 function getNextActionLabel(status: CampaignStatus) {

@@ -15,6 +15,9 @@ import type {
 } from "./types";
 
 type CampaignApiRecord = Campaign & {
+  template_id?: string | null;
+  audience_id?: string | null;
+  smtp_sender_id?: string | null;
   template_variable_mappings?: unknown;
   templateVariableMappings?: unknown;
 };
@@ -79,6 +82,9 @@ function normalizeTemplateVariableMappings(
 
 function normalizeCampaign(campaign: CampaignApiRecord): Campaign {
   const {
+    template_id: templateIdSnakeCase,
+    audience_id: audienceIdSnakeCase,
+    smtp_sender_id: smtpSenderIdSnakeCase,
     template_variable_mappings: snakeCaseMappings,
     templateVariableMappings: camelCaseMappings,
     ...rest
@@ -86,6 +92,9 @@ function normalizeCampaign(campaign: CampaignApiRecord): Campaign {
 
   return {
     ...rest,
+    templateId: rest.templateId ?? templateIdSnakeCase ?? null,
+    audienceId: rest.audienceId ?? audienceIdSnakeCase ?? null,
+    smtpSenderId: rest.smtpSenderId ?? smtpSenderIdSnakeCase ?? null,
     templateVariableMappings: normalizeTemplateVariableMappings(
       camelCaseMappings ?? snakeCaseMappings,
     ),

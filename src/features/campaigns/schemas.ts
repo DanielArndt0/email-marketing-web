@@ -12,16 +12,24 @@ export const campaignStatuses = [
 ] as const;
 
 export const campaignFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Informe um nome com pelo menos 2 caracteres."),
-  goal: z.string().optional(),
-  subject: z.string().optional(),
-  status: z.enum(campaignStatuses),
-  templateId: z.string().optional(),
-  audienceId: z.string().optional(),
-  scheduleAt: z.string().optional(),
+  name: z.string().min(1, "Informe o nome da campanha."),
+  goal: z.string().optional().default(""),
+  subject: z.string().optional().default(""),
+  status: z.enum([
+    "draft",
+    "ready",
+    "scheduled",
+    "running",
+    "paused",
+    "completed",
+    "canceled",
+    "failed",
+  ]),
+  templateId: z.string().optional().default(""),
+  audienceId: z.string().optional().default(""),
+  smtpSenderId: z.string().optional().default(""),
+  scheduleAt: z.string().optional().default(""),
+  templateVariableMappings: z.record(z.string(), z.any()).default({}),
 });
 
 export type CampaignFormValues = z.infer<typeof campaignFormSchema>;

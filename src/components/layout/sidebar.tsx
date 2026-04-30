@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  AtSign,
   BarChart3,
   FileText,
   LayoutDashboard,
@@ -18,6 +19,7 @@ const items = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/templates", label: "Templates", icon: FileText },
   { href: "/audiences", label: "Audiences", icon: Users },
+  { href: "/smtp-senders", label: "Remetentes", icon: AtSign },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/dispatches", label: "Dispatches", icon: Send },
   { href: "/settings", label: "Configurações", icon: Settings },

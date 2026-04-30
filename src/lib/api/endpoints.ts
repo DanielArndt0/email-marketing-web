@@ -15,6 +15,13 @@ export const endpoints = {
     resolve: "/audiences/resolve",
   },
 
+  smtpSenders: {
+    list: "/smtp-senders",
+    create: "/smtp-senders",
+    byId: (id: string) => `/smtp-senders/${id}`,
+    test: (id: string) => `/smtp-senders/${id}/test`,
+  },
+
   domains: {
     cnpjApi: {
       cities: "/domain/cnpj-api/cities",

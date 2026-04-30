@@ -11,11 +11,15 @@ import type { CampaignFormProps } from "./campaign-form/campaign-form.types";
 import { useCampaignFormController } from "./campaign-form/hooks/use-campaign-form-controller";
 
 export function CampaignForm(props: CampaignFormProps) {
-  const controller = useCampaignFormController(props);
+  const campaign = props.campaign ?? null;
+  const controller = useCampaignFormController({
+    ...props,
+    campaign,
+  });
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft md:p-6">
-      <CampaignFormHeader campaign={props.campaign} onCancel={props.onCancel} />
+    <section className="app-card rounded-3xl p-5 md:p-6">
+      <CampaignFormHeader campaign={campaign} onCancel={props.onCancel} />
 
       <WizardStepIndicator currentStep={controller.currentStep} />
 
@@ -31,10 +35,11 @@ export function CampaignForm(props: CampaignFormProps) {
             form={controller.form}
             templates={controller.templates}
             audiences={controller.audiences}
+            smtpSenders={controller.smtpSenders}
             selectedTemplate={controller.selectedTemplate}
             selectedAudience={controller.selectedAudience}
-            templateVariables={controller.templateVariables}
-            leadPathOptions={controller.leadPathOptions}
+            selectedSmtpSender={controller.selectedSmtpSender}
+            audienceFields={controller.audienceFields}
             templateVariableMappings={controller.templateVariableMappings}
             onMappingSourceChange={controller.handleMappingSourceChange}
             onMappingPathChange={controller.handleMappingPathChange}
@@ -49,6 +54,7 @@ export function CampaignForm(props: CampaignFormProps) {
             form={controller.form}
             selectedTemplate={controller.selectedTemplate}
             selectedAudience={controller.selectedAudience}
+            selectedSmtpSender={controller.selectedSmtpSender}
             templateVariableMappings={controller.templateVariableMappings}
           />
         ) : null}

@@ -28,20 +28,36 @@ export type TemplateVariableMapping =
 
 export type TemplateVariableMappings = Record<string, TemplateVariableMapping>;
 
+export type CampaignSmtpSender = {
+  id: string;
+  name: string;
+  fromName: string;
+  fromEmail: string;
+  replyToEmail: string | null;
+  isActive: boolean;
+};
+
 export type Campaign = {
   id: string;
   name: string;
   goal: string | null;
   subject: string | null;
   status: CampaignStatus;
+
   templateId: string | null;
   audienceId: string | null;
+  smtpSenderId: string | null;
+
   template?: EmailTemplate | null;
   audience?: Audience | null;
+  smtpSender?: CampaignSmtpSender | null;
+
   scheduleAt: string | null;
   lastExecutionAt: string | null;
+
   createdAt?: string;
   updatedAt?: string;
+
   templateVariableMappings?: TemplateVariableMappings;
 };
 
@@ -50,11 +66,16 @@ export type CreateCampaignInput = {
   goal?: string | null;
   subject?: string | null;
   status?: CampaignStatus;
+
   templateId?: string | null;
   audienceId?: string | null;
+  smtpSenderId?: string | null;
+
   scheduleAt?: string | null;
   templateVariableMappings?: TemplateVariableMappings;
 };
+
+export type UpdateCampaignInput = Partial<CreateCampaignInput>;
 
 export type CampaignListResponse =
   | Campaign[]
@@ -67,28 +88,30 @@ export type CampaignListResponse =
       totalPages?: number;
     };
 
-export type UpdateCampaignInput = Partial<CreateCampaignInput>;
-
-export type DispatchCampaignInput = Record<string, never>;
+export type DispatchCampaignInput = {
+  limit?: number;
+};
 
 export type DispatchCampaignResult = {
   campaignId?: string;
-  campaignName?: string;
-  created?: number;
-  enqueued?: number;
-  skipped?: number;
+  status?: string;
   message?: string;
-  errors?: unknown[];
+  createdCount?: number;
+  queuedCount?: number;
+  skippedCount?: number;
+  failedCount?: number;
   [key: string]: unknown;
 };
 
 export type DispatchCampaignBatchInput = {
   campaignIds: string[];
+  limitPerCampaign?: number;
 };
 
 export type DispatchCampaignBatchResult = {
-  items?: DispatchCampaignResult[];
-  data?: DispatchCampaignResult[];
+  status?: string;
+  message?: string;
   results?: DispatchCampaignResult[];
+  items?: DispatchCampaignResult[];
   [key: string]: unknown;
 };

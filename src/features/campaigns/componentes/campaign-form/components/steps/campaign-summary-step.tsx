@@ -11,7 +11,7 @@ import type { TemplateVariableMapping } from "../../../../types";
 
 function getMappingSourceLabel(mapping: TemplateVariableMapping) {
   if (mapping.source === "lead") {
-    return "Campo da audience";
+    return "Lead";
   }
 
   return "Valor fixo";

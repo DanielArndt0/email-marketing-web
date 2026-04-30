@@ -1,75 +1,44 @@
-import { toApiDateTime, type CampaignFormValues } from "../../../schemas";
-import type {
-  CreateCampaignInput,
-  TemplateVariableMappings,
-} from "../../../types";
-import type { TemplateVariableDefinition } from "../campaign-form.types";
+import type { CreateCampaignInput, UpdateCampaignInput } from "../../../types";
+import type { CampaignFormValues } from "../campaign-form.types";
 
-import { toOptionalString } from "./form-default-values";
+function emptyToUndefined(value: string) {
+  const trimmed = value.trim();
 
-function normalizeTemplateVariableMappings(
-  templateVariables: TemplateVariableDefinition[],
-  templateVariableMappings: TemplateVariableMappings,
-): TemplateVariableMappings {
-  return templateVariables.reduce<TemplateVariableMappings>(
-    (mappings, variable) => {
-      const mapping = templateVariableMappings[variable.key];
-
-      if (!mapping) {
-        return mappings;
-      }
-
-      if (mapping.source === "lead" && mapping.path.trim()) {
-        mappings[variable.key] = {
-          source: "lead",
-          path: mapping.path.trim(),
-          ...(mapping.fallback?.trim()
-            ? { fallback: mapping.fallback.trim() }
-            : {}),
-        };
-
-        return mappings;
-      }
-
-      if (mapping.source === "static" && mapping.value.trim()) {
-        mappings[variable.key] = {
-          source: "static",
-          value: mapping.value.trim(),
-        };
-      }
-
-      return mappings;
-    },
-    {},
-  );
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
-export function buildCampaignPayload(params: {
-  values: CampaignFormValues;
-  templateVariables: TemplateVariableDefinition[];
-  templateVariableMappings: TemplateVariableMappings;
-}): CreateCampaignInput {
-  const { values, templateVariables, templateVariableMappings } = params;
+function normalizeScheduleAt(value: string) {
+  if (!value) {
+    return undefined;
+  }
 
-  const goal = toOptionalString(values.goal);
-  const subject = toOptionalString(values.subject);
-  const templateId = toOptionalString(values.templateId);
-  const audienceId = toOptionalString(values.audienceId);
-  const scheduleAt = values.scheduleAt?.trim()
-    ? toApiDateTime(values.scheduleAt)
-    : undefined;
+  const date = new Date(value);
 
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+}
+
+export function buildCreateCampaignPayload(
+  values: CampaignFormValues,
+): CreateCampaignInput {
   return {
     name: values.name.trim(),
+    goal: emptyToUndefined(values.goal),
+    subject: emptyToUndefined(values.subject),
     status: values.status,
-    ...(goal ? { goal } : {}),
-    ...(subject ? { subject } : {}),
-    ...(templateId ? { templateId } : {}),
-    ...(audienceId ? { audienceId } : {}),
-    ...(scheduleAt ? { scheduleAt } : {}),
-    templateVariableMappings: normalizeTemplateVariableMappings(
-      templateVariables,
-      templateVariableMappings,
-    ),
+    templateId: emptyToUndefined(values.templateId),
+    audienceId: emptyToUndefined(values.audienceId),
+    smtpSenderId: emptyToUndefined(values.smtpSenderId),
+    scheduleAt: normalizeScheduleAt(values.scheduleAt),
+    templateVariableMappings: values.templateVariableMappings ?? {},
   };
+}
+
+export function buildUpdateCampaignPayload(
+  values: CampaignFormValues,
+): UpdateCampaignInput {
+  return buildCreateCampaignPayload(values);
 }

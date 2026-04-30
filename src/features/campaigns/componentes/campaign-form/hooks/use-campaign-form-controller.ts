@@ -3,14 +3,22 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useAudiences } from "@/features/audiences/hooks";
+import { useSmtpSenders } from "@/features/smtp-senders/hooks";
 import { useTemplates } from "@/features/templates/hooks";
 import { getApiErrorMessage } from "@/lib/api/http-client";
 
 import { useCreateCampaign, useUpdateCampaign } from "../../../hooks";
-import { campaignFormSchema, type CampaignFormValues } from "../../../schemas";
-import type { CampaignFormProps, WizardStep } from "../campaign-form.types";
-import { getLeadPathOptions } from "../utils/audience-fields";
-import { buildCampaignPayload } from "../utils/campaign-payload";
+import { campaignFormSchema } from "../../../schemas";
+import type {
+  CampaignFormProps,
+  CampaignFormValues,
+  WizardStep,
+} from "../campaign-form.types";
+import { getAudienceLeadPathOptions } from "../utils/audience-fields";
+import {
+  buildCreateCampaignPayload,
+  buildUpdateCampaignPayload,
+} from "../utils/campaign-payload";
 import {
   getDefaultValues,
   toOptionalString,
@@ -20,7 +28,7 @@ import { getTemplateVariables } from "../utils/template-variables";
 import { useTemplateVariableMapping } from "./use-template-variable-mapping";
 
 export function useCampaignFormController({
-  campaign,
+  campaign = null,
   onSaved,
 }: CampaignFormProps) {
   const createCampaign = useCreateCampaign();
@@ -28,6 +36,11 @@ export function useCampaignFormController({
 
   const templatesQuery = useTemplates();
   const audiencesQuery = useAudiences();
+  const smtpSendersQuery = useSmtpSenders({
+    page: 1,
+    pageSize: 100,
+    isActive: true,
+  });
 
   const [currentStep, setCurrentStep] = useState<WizardStep>(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -42,6 +55,20 @@ export function useCampaignFormController({
     [audiencesQuery.data],
   );
 
+  const smtpSenders = useMemo(() => {
+    const data = smtpSendersQuery.data;
+
+    if (!data) {
+      return [];
+    }
+
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    return data.items ?? [];
+  }, [smtpSendersQuery.data]);
+
   const defaultValues = useMemo(() => getDefaultValues(campaign), [campaign]);
 
   const form = useForm<CampaignFormValues>({
@@ -55,17 +82,26 @@ export function useCampaignFormController({
     setSubmitError(null);
   }, [defaultValues, form]);
 
-  const templateId = form.watch("templateId");
-  const audienceId = form.watch("audienceId");
+  const selectedTemplateId = form.watch("templateId");
+  const selectedAudienceId = form.watch("audienceId");
+  const selectedSmtpSenderId = form.watch("smtpSenderId");
 
   const selectedTemplate = useMemo(
-    () => templates.find((template) => template.id === templateId) ?? null,
-    [templates, templateId],
+    () =>
+      templates.find((template) => template.id === selectedTemplateId) ?? null,
+    [templates, selectedTemplateId],
   );
 
   const selectedAudience = useMemo(
-    () => audiences.find((audience) => audience.id === audienceId) ?? null,
-    [audiences, audienceId],
+    () =>
+      audiences.find((audience) => audience.id === selectedAudienceId) ?? null,
+    [audiences, selectedAudienceId],
+  );
+
+  const selectedSmtpSender = useMemo(
+    () =>
+      smtpSenders.find((sender) => sender.id === selectedSmtpSenderId) ?? null,
+    [smtpSenders, selectedSmtpSenderId],
   );
 
   const templateVariables = useMemo(
@@ -74,8 +110,13 @@ export function useCampaignFormController({
   );
 
   const leadPathOptions = useMemo(
-    () => getLeadPathOptions(selectedAudience),
+    () => getAudienceLeadPathOptions(selectedAudience),
     [selectedAudience],
+  );
+
+  const audienceFields = useMemo(
+    () => leadPathOptions.map((option) => option.path),
+    [leadPathOptions],
   );
 
   const {
@@ -85,7 +126,7 @@ export function useCampaignFormController({
     handleMappingStaticValueChange,
     unmappedVariables,
   } = useTemplateVariableMapping({
-    campaign,
+    form,
     templateVariables,
     leadPathOptions,
   });
@@ -115,6 +156,9 @@ export function useCampaignFormController({
     if (currentStep === 1) {
       const templateIdValue = toOptionalString(form.getValues("templateId"));
       const audienceIdValue = toOptionalString(form.getValues("audienceId"));
+      const smtpSenderIdValue = toOptionalString(
+        form.getValues("smtpSenderId"),
+      );
 
       let hasError = false;
 
@@ -136,6 +180,15 @@ export function useCampaignFormController({
         hasError = true;
       }
 
+      if (!smtpSenderIdValue) {
+        form.setError("smtpSenderId", {
+          type: "custom",
+          message: "Selecione um remetente SMTP.",
+        });
+
+        hasError = true;
+      }
+
       if (hasError) {
         return;
       }
@@ -143,14 +196,14 @@ export function useCampaignFormController({
       if (unmappedVariables.length > 0) {
         setSubmitError(
           `Mapeie as variáveis do template antes de continuar: ${unmappedVariables
-            .map((variable) => `{{${variable}}}`)
+            .map((variable) => `{{${variable.key}}}`)
             .join(", ")}.`,
         );
 
         return;
       }
 
-      form.clearErrors(["templateId", "audienceId"]);
+      form.clearErrors(["templateId", "audienceId", "smtpSenderId"]);
       setCurrentStep(2);
     }
   }
@@ -164,20 +217,14 @@ export function useCampaignFormController({
   async function submitCampaign(values: CampaignFormValues): Promise<void> {
     setSubmitError(null);
 
-    const payload = buildCampaignPayload({
-      values,
-      templateVariables,
-      templateVariableMappings,
-    });
-
     try {
       if (campaign) {
         await updateCampaign.mutateAsync({
           id: campaign.id,
-          input: payload,
+          input: buildUpdateCampaignPayload(values),
         });
       } else {
-        await createCampaign.mutateAsync(payload);
+        await createCampaign.mutateAsync(buildCreateCampaignPayload(values));
       }
 
       onSaved();
@@ -194,17 +241,30 @@ export function useCampaignFormController({
     form,
     currentStep,
     submitError,
+
     templates,
     audiences,
+    smtpSenders,
+
+    templatesQuery,
+    audiencesQuery,
+    smtpSendersQuery,
+
     selectedTemplate,
     selectedAudience,
+    selectedSmtpSender,
+
     templateVariables,
     leadPathOptions,
+    audienceFields,
+
     templateVariableMappings,
     isPending,
+
     goToNextStep,
     goToPreviousStep,
     handleSave,
+
     handleMappingSourceChange,
     handleMappingPathChange,
     handleMappingStaticValueChange,
