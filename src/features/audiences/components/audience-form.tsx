@@ -547,7 +547,7 @@ export function AudienceForm({
                   >
                     <option value="cnpj-api">CNPJ API</option>
                     <option value="csv-import">CSV import</option>
-                    <option value="manual-list"></option>
+                    <option value="manual-list">Lista Manual</option>
                   </select>
                 </FormField>
 

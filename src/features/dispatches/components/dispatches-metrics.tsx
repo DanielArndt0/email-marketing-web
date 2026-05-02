@@ -1,39 +1,45 @@
 import { Clock, MailCheck, MailWarning, Send } from "lucide-react";
 
-import type { EmailDispatch } from "../types";
+import type { MonitoredCampaign } from "../types";
 
 type DispatchesMetricsProps = {
-  dispatches: EmailDispatch[];
+  campaigns: MonitoredCampaign[];
 };
 
-export function DispatchesMetrics({ dispatches }: DispatchesMetricsProps) {
-  const total = dispatches.length;
-  const sent = dispatches.filter((item) => item.status === "sent").length;
-  const failed = dispatches.filter((item) => item.status === "failed").length;
-  const queued = dispatches.filter((item) => item.status === "queued").length;
+export function DispatchesMetrics({ campaigns }: DispatchesMetricsProps) {
+  const totalCampaigns = campaigns.length;
+  const totalSent = campaigns.reduce((sum, item) => sum + item.sentCount, 0);
+  const totalFailed = campaigns.reduce(
+    (sum, item) => sum + item.failedCount,
+    0,
+  );
+  const totalQueued = campaigns.reduce(
+    (sum, item) => sum + item.queuedCount,
+    0,
+  );
 
   const metrics = [
     {
-      label: "Total de envios",
-      value: total,
+      label: "Campanhas monitoradas",
+      value: totalCampaigns,
       icon: Send,
-      description: "Registros encontrados",
+      description: "Disparos acompanhados",
     },
     {
-      label: "Enviados",
-      value: sent,
+      label: "E-mails enviados",
+      value: totalSent,
       icon: MailCheck,
       description: "Finalizados com sucesso",
     },
     {
-      label: "Falhas",
-      value: failed,
+      label: "E-mails com falha",
+      value: totalFailed,
       icon: MailWarning,
       description: "Exigem análise ou retry",
     },
     {
-      label: "Na fila",
-      value: queued,
+      label: "E-mails na fila",
+      value: totalQueued,
       icon: Clock,
       description: "Aguardando processamento",
     },
