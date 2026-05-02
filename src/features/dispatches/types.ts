@@ -1,20 +1,22 @@
-export type EmailDispatchStatus =
-  | "pending"
+export type DispatchStatus =
+  | "queued"
   | "processing"
   | "sent"
-  | "error"
-  | "cancelled";
+  | "failed"
+  | "retrying"
+  | "canceled";
 
 export type EmailDispatch = {
   id: string;
-  campaignId: string;
-  contactId?: string;
-  to: string;
-  status: EmailDispatchStatus;
-  error?: string | null;
-  providerMessageId?: string | null;
-  renderedHtml?: string | null;
-  renderedText?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  campaignName: string;
+  recipientEmail: string;
+  subject: string;
+  status: DispatchStatus;
+  provider: string;
+  attemptCount: number;
+  maxAttempts: number;
+  queuedAt: string;
+  sentAt?: string | null;
+  failedAt?: string | null;
+  lastError?: string | null;
 };

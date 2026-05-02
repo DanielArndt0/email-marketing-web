@@ -1,19 +1,5 @@
-import { PageHeader } from "@/components/layout/page-header";
-import { EmptyState } from "@/components/ui/empty-state";
+import { DispatchesPageClient } from "@/features/dispatches/components/dispatches-page-client";
 
-export default function Page() {
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow="Dispatches"
-        title="Envios"
-        description="Consulta de email dispatches, filtros por status, detalhes, retry e conteúdo renderizado."
-      />
-
-      <EmptyState
-        title="Módulo preparado para implementação"
-        description="A estrutura já está pronta. O próximo passo é mapear os contratos reais da Control API pelo Swagger e implementar os forms e services."
-      />
-    </div>
-  );
+export default function DispatchesPage() {
+  return <DispatchesPageClient />;
 }
