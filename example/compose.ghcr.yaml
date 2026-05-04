@@ -1,0 +1,87 @@
+name: email-marketing-full-stack
+
+services:
+  postgres:
+    image: ghcr.io/danielarndt0/email-marketing-postgres:${BACKEND_IMAGE_TAG}
+    container_name: email_marketing_postgres
+    restart: unless-stopped
+    pull_policy: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PUBLISHED_PORT:-5433}:5432"
+    volumes:
+      - email_marketing_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: email_marketing_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PUBLISHED_PORT:-6380}:6379"
+    volumes:
+      - email_marketing_redisdata:/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: email_marketing_mailpit
+    restart: unless-stopped
+    ports:
+      - "${SMTP_PUBLISHED_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PUBLISHED_PORT:-8025}:8025"
+
+  control-api:
+    image: ghcr.io/danielarndt0/control-api:${BACKEND_IMAGE_TAG}
+    container_name: email_marketing_control_api
+    restart: unless-stopped
+    pull_policy: always
+    env_file:
+      - .env.ghcr
+    ports:
+      - "${CONTROL_API_PUBLISHED_PORT:-3333}:${API_PORT:-3333}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
+
+  dispatch-worker:
+    image: ghcr.io/danielarndt0/dispatch-worker:${BACKEND_IMAGE_TAG}
+    container_name: email_marketing_dispatch_worker
+    restart: unless-stopped
+    pull_policy: always
+    env_file:
+      - .env.ghcr
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
+
+  web:
+    image: ghcr.io/danielarndt0/email-marketing-web:${FRONTEND_IMAGE_TAG}
+    container_name: email_marketing_web
+    restart: unless-stopped
+    pull_policy: always
+    env_file:
+      - .env.ghcr
+    ports:
+      - "${WEB_PUBLISHED_PORT:-3001}:3001"
+    depends_on:
+      control-api:
+        condition: service_started
+
+volumes:
+  email_marketing_pgdata:
+  email_marketing_redisdata:
