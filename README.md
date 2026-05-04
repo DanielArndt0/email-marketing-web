@@ -76,9 +76,13 @@ API_BASE_URL=http://localhost:3333
 OPENAPI_SCHEMA_URL=http://localhost:3333/documentation/json
 ```
 
-Essas variáveis são usadas apenas no lado servidor do Next.js.
+> Essas variáveis não são sensíveis. Elas podem apontar para endereços públicos ou internos, dependendo do ambiente.
 
-Não utilize `NEXT_PUBLIC_*` para configurar a URL da API.
+A decisão de não usar `NEXT_PUBLIC_*` neste projeto não é por sigilo, mas por compatibilidade com Docker.
+
+No Next.js, variáveis `NEXT_PUBLIC_*` são incorporadas ao bundle do navegador durante o build. Isso faria a imagem Docker do front-end ficar presa à URL da API usada no momento da geração da imagem.
+
+Por isso, o projeto usa variáveis de runtime no servidor Next.js e rotas internas de proxy. Assim, a mesma imagem Docker pode ser reutilizada em ambientes diferentes, alterando apenas o arquivo de ambiente.
 
 ### Como o proxy funciona
 
