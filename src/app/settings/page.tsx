@@ -5,7 +5,7 @@ import { CheckCircle2, Moon, Server, Sun } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { useTheme } from "@/components/theme/theme-provider";
-import { env } from "@/lib/env/client-env";
+import { clientEnv } from "@/lib/env/client-env";
 
 function SettingsCard({
   title,
@@ -174,11 +174,12 @@ export default function SettingsPage() {
             <div className="space-y-3">
               <FieldLabel>URL base da Control API</FieldLabel>
 
-              <ReadOnlyCode>{env.NEXT_PUBLIC_API_BASE_URL}</ReadOnlyCode>
+              <ReadOnlyCode>{clientEnv.API_BASE_PATH}</ReadOnlyCode>
 
               <HelperText>
-                A URL base continua sendo configurada via arquivo{" "}
-                <code>.env.local</code>.
+                O navegador usa a rota interna do Next.js. A URL real da Control
+                API é configurada no runtime do servidor por{" "}
+                <code>API_BASE_URL</code>.
               </HelperText>
             </div>
           </SettingsCard>

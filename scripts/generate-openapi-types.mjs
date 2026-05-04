@@ -35,11 +35,11 @@ function loadEnvFile(filePath) {
 loadEnvFile(resolve(process.cwd(), ".env"));
 loadEnvFile(resolve(process.cwd(), ".env.local"));
 
-const openApiSchemaUrl = process.env.NEXT_PUBLIC_OPENAPI_SCHEMA_URL;
+const openApiSchemaUrl = process.env.OPENAPI_SCHEMA_URL;
 
 if (!openApiSchemaUrl) {
   console.error(
-    "Erro: defina NEXT_PUBLIC_OPENAPI_SCHEMA_URL no arquivo .env.local.",
+    "Erro: defina OPENAPI_SCHEMA_URL no arquivo .env.local ou .env.",
   );
   process.exit(1);
 }

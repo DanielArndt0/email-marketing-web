@@ -12,7 +12,6 @@ import {
 
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/ui/stat-card";
-import { env } from "@/lib/env/client-env";
 import { useAudiences } from "@/features/audiences/hooks";
 import { useCampaigns } from "@/features/campaigns/hooks";
 import { useApiHealth } from "@/features/system/use-api-health";
@@ -97,7 +96,7 @@ export function DashboardPageClient() {
         <StatCard
           title="Status da API"
           value={apiStatusLabel}
-          description={env.NEXT_PUBLIC_API_BASE_URL}
+          description="Proxy interno /api/backend"
           icon={Activity}
         />
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { env } from "@/lib/env/client-env";
+import { clientEnv } from "@/lib/env/client-env";
 
 export type ApiErrorPayload = {
   message?: string;
@@ -66,7 +66,7 @@ function normalizeApiMessage(message: string) {
 }
 
 export const httpClient = axios.create({
-  baseURL: env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: clientEnv.API_BASE_PATH,
   headers: {
     "Content-Type": "application/json",
   },
