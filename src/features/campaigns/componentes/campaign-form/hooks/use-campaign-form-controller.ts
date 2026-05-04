@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
-import { useAudiences } from "@/features/audiences/hooks";
+import { useAudiencePreview, useAudiences } from "@/features/audiences/hooks";
 import { useSmtpSenders } from "@/features/smtp-senders/hooks";
 import { useTemplates } from "@/features/templates/hooks";
 import { getApiErrorMessage } from "@/lib/api/http-client";
@@ -82,9 +82,24 @@ export function useCampaignFormController({
     setSubmitError(null);
   }, [defaultValues, form]);
 
-  const selectedTemplateId = form.watch("templateId");
-  const selectedAudienceId = form.watch("audienceId");
-  const selectedSmtpSenderId = form.watch("smtpSenderId");
+  const selectedTemplateId = useWatch({
+    control: form.control,
+    name: "templateId",
+  });
+
+  const selectedAudienceId = useWatch({
+    control: form.control,
+    name: "audienceId",
+  });
+
+  const audiencePreviewQuery = useAudiencePreview(
+    selectedAudienceId || undefined,
+  );
+
+  const selectedSmtpSenderId = useWatch({
+    control: form.control,
+    name: "smtpSenderId",
+  });
 
   const selectedTemplate = useMemo(
     () =>
@@ -110,22 +125,23 @@ export function useCampaignFormController({
   );
 
   const leadPathOptions = useMemo(
-    () => getAudienceLeadPathOptions(selectedAudience),
-    [selectedAudience],
-  );
-
-  const audienceFields = useMemo(
-    () => leadPathOptions.map((option) => option.path),
-    [leadPathOptions],
+    () =>
+      getAudienceLeadPathOptions(
+        selectedAudience,
+        audiencePreviewQuery.data?.items ?? [],
+      ),
+    [selectedAudience, audiencePreviewQuery.data?.items],
   );
 
   const {
     templateVariableMappings,
+    unmappedVariables,
     handleMappingSourceChange,
     handleMappingPathChange,
     handleMappingStaticValueChange,
-    unmappedVariables,
+    handleMappingFallbackChange,
   } = useTemplateVariableMapping({
+    form,
     campaign,
     templateVariables,
     leadPathOptions,
@@ -133,17 +149,67 @@ export function useCampaignFormController({
 
   const isPending = createCampaign.isPending || updateCampaign.isPending;
 
+  async function validateCampaignDataStep() {
+    return form.trigger(["name", "goal", "subject", "status", "scheduleAt"]);
+  }
+
+  function validateCampaignLinksStep() {
+    const templateIdValue = toOptionalString(form.getValues("templateId"));
+    const audienceIdValue = toOptionalString(form.getValues("audienceId"));
+    const smtpSenderIdValue = toOptionalString(form.getValues("smtpSenderId"));
+
+    let hasError = false;
+
+    if (!templateIdValue) {
+      form.setError("templateId", {
+        type: "custom",
+        message: "Selecione um template.",
+      });
+
+      hasError = true;
+    }
+
+    if (!audienceIdValue) {
+      form.setError("audienceId", {
+        type: "custom",
+        message: "Selecione uma audience.",
+      });
+
+      hasError = true;
+    }
+
+    if (!smtpSenderIdValue) {
+      form.setError("smtpSenderId", {
+        type: "custom",
+        message: "Selecione um remetente SMTP.",
+      });
+
+      hasError = true;
+    }
+
+    if (hasError) {
+      return false;
+    }
+
+    if (unmappedVariables.length > 0) {
+      setSubmitError(
+        `Mapeie as variáveis do template antes de continuar: ${unmappedVariables
+          .map((variable) => `{{${variable.key}}}`)
+          .join(", ")}.`,
+      );
+
+      return false;
+    }
+
+    form.clearErrors(["templateId", "audienceId", "smtpSenderId"]);
+    return true;
+  }
+
   async function goToNextStep() {
     setSubmitError(null);
 
     if (currentStep === 0) {
-      const isValid = await form.trigger([
-        "name",
-        "goal",
-        "subject",
-        "status",
-        "scheduleAt",
-      ]);
+      const isValid = await validateCampaignDataStep();
 
       if (!isValid) {
         return;
@@ -154,56 +220,12 @@ export function useCampaignFormController({
     }
 
     if (currentStep === 1) {
-      const templateIdValue = toOptionalString(form.getValues("templateId"));
-      const audienceIdValue = toOptionalString(form.getValues("audienceId"));
-      const smtpSenderIdValue = toOptionalString(
-        form.getValues("smtpSenderId"),
-      );
+      const isValid = validateCampaignLinksStep();
 
-      let hasError = false;
-
-      if (!templateIdValue) {
-        form.setError("templateId", {
-          type: "custom",
-          message: "Selecione um template.",
-        });
-
-        hasError = true;
-      }
-
-      if (!audienceIdValue) {
-        form.setError("audienceId", {
-          type: "custom",
-          message: "Selecione uma audience.",
-        });
-
-        hasError = true;
-      }
-
-      if (!smtpSenderIdValue) {
-        form.setError("smtpSenderId", {
-          type: "custom",
-          message: "Selecione um remetente SMTP.",
-        });
-
-        hasError = true;
-      }
-
-      if (hasError) {
+      if (!isValid) {
         return;
       }
 
-      if (unmappedVariables.length > 0) {
-        setSubmitError(
-          `Mapeie as variáveis do template antes de continuar: ${unmappedVariables
-            .map((variable) => `{{${variable}}}`)
-            .join(", ")}.`,
-        );
-
-        return;
-      }
-
-      form.clearErrors(["templateId", "audienceId", "smtpSenderId"]);
       setCurrentStep(2);
     }
   }
@@ -214,24 +236,46 @@ export function useCampaignFormController({
     setCurrentStep((step) => (step > 0 ? ((step - 1) as WizardStep) : step));
   }
 
+  function getStatusAfterSave(values: CampaignFormValues) {
+    const hasTemplate = Boolean(toOptionalString(values.templateId));
+    const hasAudience = Boolean(toOptionalString(values.audienceId));
+    const hasSmtpSender = Boolean(toOptionalString(values.smtpSenderId));
+
+    const isReadyForDispatch = hasTemplate && hasAudience && hasSmtpSender;
+
+    if (!isReadyForDispatch) {
+      return "draft";
+    }
+
+    if (!campaign) {
+      return "ready";
+    }
+
+    if (campaign.status === "draft") {
+      return "ready";
+    }
+
+    return values.status;
+  }
+
   async function submitCampaign(values: CampaignFormValues): Promise<void> {
     setSubmitError(null);
 
-    const createPayload = buildCreateCampaignPayload(values);
-    const updatePayload = buildUpdateCampaignPayload(values);
-
-    console.log("CAMPAIGN FORM VALUES", values);
-    console.log("CREATE CAMPAIGN PAYLOAD", createPayload);
-    console.log("UPDATE CAMPAIGN PAYLOAD", updatePayload);
+    const valuesWithAutomaticStatus: CampaignFormValues = {
+      ...values,
+      status: getStatusAfterSave(values),
+    };
 
     try {
       if (campaign) {
         await updateCampaign.mutateAsync({
           id: campaign.id,
-          input: updatePayload,
+          input: buildUpdateCampaignPayload(valuesWithAutomaticStatus),
         });
       } else {
-        await createCampaign.mutateAsync(createPayload);
+        await createCampaign.mutateAsync(
+          buildCreateCampaignPayload(valuesWithAutomaticStatus),
+        );
       }
 
       onSaved();
@@ -263,9 +307,10 @@ export function useCampaignFormController({
 
     templateVariables,
     leadPathOptions,
-    audienceFields,
-
     templateVariableMappings,
+
+    audiencePreviewQuery,
+
     isPending,
 
     goToNextStep,
@@ -275,5 +320,6 @@ export function useCampaignFormController({
     handleMappingSourceChange,
     handleMappingPathChange,
     handleMappingStaticValueChange,
+    handleMappingFallbackChange,
   };
 }

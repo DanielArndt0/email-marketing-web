@@ -72,30 +72,6 @@ export function CampaignDataStep({ form }: CampaignDataStepProps) {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className="text-sm font-medium app-heading">Status</label>
-
-            <select
-              {...form.register("status")}
-              className="app-select-surface mt-2 h-11 w-full rounded-xl px-3 text-sm outline-none transition focus:ring-2 focus:ring-slate-200 dark:focus:ring-neutral-700"
-            >
-              <option value="draft">Rascunho</option>
-              <option value="ready">Pronta</option>
-              <option value="scheduled">Agendada</option>
-              <option value="running">Em execução</option>
-              <option value="paused">Pausada</option>
-              <option value="completed">Concluída</option>
-              <option value="canceled">Cancelada</option>
-              <option value="failed">Falhou</option>
-            </select>
-
-            {errors.status?.message ? (
-              <p className="mt-1 text-xs text-red-600 dark:text-red-300">
-                {String(errors.status.message)}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
             <label className="text-sm font-medium app-heading">
               Agendamento
             </label>

@@ -1,39 +1,76 @@
-import type { Audience } from "@/features/audiences/types";
+import type { Audience, AudiencePreviewItem } from "@/features/audiences/types";
 
 import type { LeadPathOption } from "../campaign-form.types";
 
-function unique(values: string[]) {
-  return Array.from(new Set(values.filter(Boolean)));
+type UnknownRecord = Record<string, unknown>;
+
+const IGNORED_METADATA_KEYS = new Set(["email", "externalId", "sourceType"]);
+
+function asRecord(value: unknown): UnknownRecord | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as UnknownRecord;
 }
 
 function getSafeArray(value: unknown) {
   return Array.isArray(value) ? value : [];
 }
 
-function toLeadPathOption(path: string): LeadPathOption {
+function toLeadPathOption(
+  path: string,
+  label = path,
+  group = "Lead",
+): LeadPathOption {
   return {
     path,
-    label: path,
+    label,
+    group,
   };
 }
 
-export function getAudienceLeadPathOptions(
-  audience: Audience | null,
-): LeadPathOption[] {
-  if (!audience) {
-    return [];
+function uniqueOptions(options: LeadPathOption[]) {
+  const seen = new Set<string>();
+
+  return options.filter((option) => {
+    if (!option.path || seen.has(option.path)) {
+      return false;
+    }
+
+    seen.add(option.path);
+    return true;
+  });
+}
+
+function pushMetadataField(options: LeadPathOption[], field: string) {
+  const normalizedField = field.trim();
+
+  if (!normalizedField) {
+    return;
   }
 
-  const sourceType = audience.sourceType;
-
-  const baseFields = ["email"];
-
-  if (sourceType === "manual-list") {
-    baseFields.push("externalId");
+  if (normalizedField === "email") {
+    options.push(toLeadPathOption("email", "email", "Lead"));
+    return;
   }
 
-  const dynamicFields: string[] = [];
+  if (normalizedField === "externalId") {
+    options.push(toLeadPathOption("externalId", "externalId", "Lead"));
+    return;
+  }
 
+  const path = normalizedField.includes(".")
+    ? normalizedField
+    : `metadata.${normalizedField}`;
+
+  options.push(toLeadPathOption(path, path, "Metadata"));
+}
+
+function collectDeclaredAudienceFields(
+  audience: Audience,
+  options: LeadPathOption[],
+) {
   const unsafeAudience = audience as unknown as {
     fields?: unknown[];
     columns?: unknown[];
@@ -41,62 +78,93 @@ export function getAudienceLeadPathOptions(
     sample?: {
       metadata?: Record<string, unknown>;
     };
+    definition?: {
+      fields?: unknown[];
+      columns?: unknown[];
+      metadataFields?: unknown[];
+      sample?: {
+        metadata?: Record<string, unknown>;
+      };
+    };
   };
 
-  for (const field of getSafeArray(unsafeAudience.fields)) {
-    if (typeof field === "string") {
-      dynamicFields.push(field.includes(".") ? field : `metadata.${field}`);
+  const fieldSources = [
+    unsafeAudience.fields,
+    unsafeAudience.columns,
+    unsafeAudience.metadataFields,
+    unsafeAudience.definition?.fields,
+    unsafeAudience.definition?.columns,
+    unsafeAudience.definition?.metadataFields,
+  ];
+
+  for (const source of fieldSources) {
+    for (const field of getSafeArray(source)) {
+      if (typeof field === "string") {
+        pushMetadataField(options, field);
+      }
     }
   }
 
-  for (const field of getSafeArray(unsafeAudience.columns)) {
-    if (typeof field === "string") {
-      dynamicFields.push(field.includes(".") ? field : `metadata.${field}`);
-    }
-  }
+  const sampleMetadata =
+    unsafeAudience.sample?.metadata ??
+    unsafeAudience.definition?.sample?.metadata;
 
-  for (const field of getSafeArray(unsafeAudience.metadataFields)) {
-    if (typeof field === "string") {
-      dynamicFields.push(field.includes(".") ? field : `metadata.${field}`);
-    }
-  }
+  const metadata = asRecord(sampleMetadata);
 
-  const metadata = unsafeAudience.sample?.metadata;
-
-  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+  if (metadata) {
     for (const key of Object.keys(metadata)) {
-      dynamicFields.push(`metadata.${key}`);
+      if (!IGNORED_METADATA_KEYS.has(key)) {
+        pushMetadataField(options, key);
+      }
     }
   }
+}
 
-  if (sourceType === "cnpj-api") {
-    dynamicFields.push(
-      "metadata.cnpj",
-      "metadata.razaoSocial",
-      "metadata.nomeFantasia",
-      "metadata.municipio",
-      "metadata.uf",
-      "metadata.cnaePrincipal",
-    );
+function collectPreviewAudienceFields(
+  previewItems: AudiencePreviewItem[],
+  options: LeadPathOption[],
+) {
+  const hasExternalId = previewItems.some((item) => {
+    const record = item as Record<string, unknown>;
+
+    return Boolean(record.externalId);
+  });
+
+  if (hasExternalId) {
+    options.push(toLeadPathOption("externalId", "externalId", "Lead"));
   }
 
-  if (sourceType === "csv-import") {
-    dynamicFields.push(
-      "metadata.name",
-      "metadata.company",
-      "metadata.razaoSocial",
-      "metadata.municipio",
-      "metadata.uf",
-    );
+  for (const item of previewItems) {
+    const metadata = asRecord((item as Record<string, unknown>).metadata);
+
+    if (!metadata) {
+      continue;
+    }
+
+    for (const key of Object.keys(metadata)) {
+      if (IGNORED_METADATA_KEYS.has(key)) {
+        continue;
+      }
+
+      pushMetadataField(options, key);
+    }
+  }
+}
+
+export function getAudienceLeadPathOptions(
+  audience: Audience | null,
+  previewItems: AudiencePreviewItem[] = [],
+): LeadPathOption[] {
+  if (!audience) {
+    return [];
   }
 
-  if (sourceType === "manual-list") {
-    dynamicFields.push(
-      "metadata.name",
-      "metadata.company",
-      "metadata.razaoSocial",
-    );
-  }
+  const options: LeadPathOption[] = [
+    toLeadPathOption("email", "email", "Lead"),
+  ];
 
-  return unique([...baseFields, ...dynamicFields]).map(toLeadPathOption);
+  collectDeclaredAudienceFields(audience, options);
+  collectPreviewAudienceFields(previewItems, options);
+
+  return uniqueOptions(options);
 }

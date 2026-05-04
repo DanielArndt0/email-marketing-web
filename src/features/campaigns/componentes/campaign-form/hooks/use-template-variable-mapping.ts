@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 
 import type {
   Campaign,
@@ -6,9 +7,17 @@ import type {
   TemplateVariableMappings,
 } from "../../../types";
 import type {
+  CampaignFormValues,
   LeadPathOption,
   TemplateVariableDefinition,
 } from "../campaign-form.types";
+
+type UseTemplateVariableMappingParams = {
+  form: UseFormReturn<CampaignFormValues>;
+  campaign: Campaign | null;
+  templateVariables: TemplateVariableDefinition[];
+  leadPathOptions: LeadPathOption[];
+};
 
 function normalizeMappingsForForm(
   mappings?: TemplateVariableMappings,
@@ -19,10 +28,16 @@ function normalizeMappingsForForm(
 
   return Object.entries(mappings).reduce<TemplateVariableMappings>(
     (normalizedMappings, [variable, mapping]) => {
-      if (mapping.source === "lead" && mapping.path.trim()) {
+      if (mapping.source === "lead") {
+        const path = mapping.path.trim();
+
+        if (!path) {
+          return normalizedMappings;
+        }
+
         normalizedMappings[variable] = {
           source: "lead",
-          path: mapping.path.trim(),
+          path,
           ...(mapping.fallback?.trim()
             ? { fallback: mapping.fallback.trim() }
             : {}),
@@ -31,12 +46,10 @@ function normalizeMappingsForForm(
         return normalizedMappings;
       }
 
-      if (mapping.source === "static") {
-        normalizedMappings[variable] = {
-          source: "static",
-          value: mapping.value,
-        };
-      }
+      normalizedMappings[variable] = {
+        source: "static",
+        value: mapping.value,
+      };
 
       return normalizedMappings;
     },
@@ -50,10 +63,10 @@ function isMappingValid(mapping?: TemplateVariableMapping) {
   }
 
   if (mapping.source === "lead") {
-    return Boolean(mapping.path.trim());
+    return mapping.path.trim().length > 0;
   }
 
-  return Boolean(mapping.value.trim());
+  return mapping.value.trim().length > 0;
 }
 
 function findBestLeadPath(
@@ -74,113 +87,198 @@ function findBestLeadPath(
   );
 }
 
-export function useTemplateVariableMapping(params: {
-  campaign: Campaign | null;
+function buildMappingsForTemplate({
+  currentMappings,
+  templateVariables,
+  leadPathOptions,
+}: {
+  currentMappings: TemplateVariableMappings;
   templateVariables: TemplateVariableDefinition[];
   leadPathOptions: LeadPathOption[];
 }) {
-  const { campaign, templateVariables, leadPathOptions } = params;
+  return templateVariables.reduce<TemplateVariableMappings>(
+    (nextMappings, variable) => {
+      const currentMapping = currentMappings[variable.key];
 
-  const [templateVariableMappings, setTemplateVariableMappings] =
-    useState<TemplateVariableMappings>({});
+      if (currentMapping?.source === "static") {
+        nextMappings[variable.key] = currentMapping;
+        return nextMappings;
+      }
 
-  useEffect(() => {
-    setTemplateVariableMappings(
-      normalizeMappingsForForm(campaign?.templateVariableMappings),
-    );
-  }, [campaign?.templateVariableMappings]);
+      if (currentMapping?.source === "lead" && currentMapping.path.trim()) {
+        nextMappings[variable.key] = currentMapping;
+        return nextMappings;
+      }
 
-  useEffect(() => {
-    setTemplateVariableMappings((currentMappings) => {
-      const nextMappings: TemplateVariableMappings = {};
+      const matchedOption = findBestLeadPath(variable, leadPathOptions);
 
-      templateVariables.forEach((variable) => {
-        const existingMapping = currentMappings[variable.key];
-
-        if (
-          existingMapping?.source === "lead" &&
-          leadPathOptions.some((option) => option.path === existingMapping.path)
-        ) {
-          nextMappings[variable.key] = existingMapping;
-          return;
-        }
-
-        if (existingMapping?.source === "static") {
-          nextMappings[variable.key] = existingMapping;
-          return;
-        }
-
-        const matchedOption = findBestLeadPath(variable, leadPathOptions);
-
-        if (matchedOption) {
-          nextMappings[variable.key] = {
-            source: "lead",
-            path: matchedOption.path,
-          };
-        }
-      });
+      if (matchedOption) {
+        nextMappings[variable.key] = {
+          source: "lead",
+          path: matchedOption.path,
+        };
+      }
 
       return nextMappings;
+    },
+    {},
+  );
+}
+
+function areMappingsEqual(
+  first: TemplateVariableMappings,
+  second: TemplateVariableMappings,
+) {
+  return JSON.stringify(first) === JSON.stringify(second);
+}
+
+export function useTemplateVariableMapping({
+  form,
+  campaign,
+  templateVariables,
+  leadPathOptions,
+}: UseTemplateVariableMappingParams) {
+  const campaignIdentity = campaign?.id ?? "new-campaign";
+
+  const watchedMappings = useWatch({
+    control: form.control,
+    name: "templateVariableMappings",
+  });
+
+  const templateVariableMappings = useMemo(
+    () => normalizeMappingsForForm(watchedMappings),
+    [watchedMappings],
+  );
+
+  const updateMappings = useCallback(
+    (nextMappings: TemplateVariableMappings) => {
+      form.setValue("templateVariableMappings", nextMappings, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [form],
+  );
+
+  useEffect(() => {
+    const currentMappings = normalizeMappingsForForm(
+      form.getValues("templateVariableMappings"),
+    );
+
+    const nextMappings = buildMappingsForTemplate({
+      currentMappings,
+      templateVariables,
+      leadPathOptions,
     });
-  }, [leadPathOptions, templateVariables]);
+
+    if (!areMappingsEqual(currentMappings, nextMappings)) {
+      updateMappings(nextMappings);
+    }
+  }, [
+    campaignIdentity,
+    form,
+    leadPathOptions,
+    templateVariables,
+    updateMappings,
+  ]);
 
   const handleMappingSourceChange = useCallback(
     (variable: string, source: TemplateVariableMapping["source"]) => {
-      setTemplateVariableMappings((currentMappings) => {
-        const currentMapping = currentMappings[variable];
+      const currentMappings = normalizeMappingsForForm(
+        form.getValues("templateVariableMappings"),
+      );
 
-        if (source === "lead") {
-          const currentPath =
-            currentMapping?.source === "lead" ? currentMapping.path : "";
+      const currentMapping = currentMappings[variable];
 
-          return {
-            ...currentMappings,
-            [variable]: {
-              source: "lead",
-              path: currentPath,
-            },
-          };
-        }
-
-        const currentValue =
-          currentMapping?.source === "static" ? currentMapping.value : "";
-
-        return {
+      if (source === "static") {
+        updateMappings({
           ...currentMappings,
           [variable]: {
             source: "static",
-            value: currentValue,
+            value:
+              currentMapping?.source === "static" ? currentMapping.value : "",
           },
-        };
+        });
+
+        return;
+      }
+
+      const templateVariable = templateVariables.find(
+        (item) => item.key === variable,
+      );
+
+      const matchedOption = templateVariable
+        ? findBestLeadPath(templateVariable, leadPathOptions)
+        : null;
+
+      updateMappings({
+        ...currentMappings,
+        [variable]: {
+          source: "lead",
+          path:
+            currentMapping?.source === "lead"
+              ? currentMapping.path
+              : (matchedOption?.path ?? ""),
+        },
       });
     },
-    [],
+    [form, leadPathOptions, templateVariables, updateMappings],
   );
 
   const handleMappingPathChange = useCallback(
     (variable: string, path: string) => {
-      setTemplateVariableMappings((currentMappings) => ({
+      const currentMappings = normalizeMappingsForForm(
+        form.getValues("templateVariableMappings"),
+      );
+
+      updateMappings({
         ...currentMappings,
         [variable]: {
           source: "lead",
           path,
         },
-      }));
+      });
     },
-    [],
+    [form, updateMappings],
   );
 
   const handleMappingStaticValueChange = useCallback(
     (variable: string, value: string) => {
-      setTemplateVariableMappings((currentMappings) => ({
+      const currentMappings = normalizeMappingsForForm(
+        form.getValues("templateVariableMappings"),
+      );
+
+      updateMappings({
         ...currentMappings,
         [variable]: {
           source: "static",
           value,
         },
-      }));
+      });
     },
-    [],
+    [form, updateMappings],
+  );
+
+  const handleMappingFallbackChange = useCallback(
+    (variable: string, fallback: string) => {
+      const currentMappings = normalizeMappingsForForm(
+        form.getValues("templateVariableMappings"),
+      );
+
+      const currentMapping = currentMappings[variable];
+
+      const path = currentMapping?.source === "lead" ? currentMapping.path : "";
+
+      updateMappings({
+        ...currentMappings,
+        [variable]: {
+          source: "lead",
+          path,
+          ...(fallback.trim() ? { fallback } : {}),
+        },
+      });
+    },
+    [form, updateMappings],
   );
 
   const unmappedVariables = useMemo(
@@ -197,9 +295,10 @@ export function useTemplateVariableMapping(params: {
 
   return {
     templateVariableMappings,
+    unmappedVariables,
     handleMappingSourceChange,
     handleMappingPathChange,
     handleMappingStaticValueChange,
-    unmappedVariables,
+    handleMappingFallbackChange,
   };
 }

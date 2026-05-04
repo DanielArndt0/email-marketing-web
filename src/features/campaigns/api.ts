@@ -128,19 +128,30 @@ export async function getCampaign(id: string) {
 }
 
 export async function createCampaign(input: CreateCampaignInput) {
+  console.log("8. API CREATE CAMPAIGN INPUT", input);
+
   const response = await postJson<CampaignApiRecord, CreateCampaignInput>(
     endpoints.campaigns.create,
     input,
   );
 
+  console.log("9. API CREATE CAMPAIGN RESPONSE", response);
+
   return normalizeCampaign(response);
 }
 
 export async function updateCampaign(id: string, input: UpdateCampaignInput) {
+  console.log("8. API UPDATE CAMPAIGN INPUT", {
+    id,
+    input,
+  });
+
   const response = await httpClient.patch<CampaignApiRecord>(
     endpoints.campaigns.byId(id),
     input,
   );
+
+  console.log("9. API UPDATE CAMPAIGN RESPONSE", response.data);
 
   return normalizeCampaign(response.data);
 }
@@ -149,18 +160,19 @@ export async function deleteCampaign(id: string) {
   return deleteJson<void>(endpoints.campaigns.byId(id));
 }
 
-export async function dispatchCampaign(id: string) {
+export async function dispatchCampaign(
+  id: string,
+  input: DispatchCampaignInput = {},
+) {
   return postJson<DispatchCampaignResult, DispatchCampaignInput>(
     endpoints.campaigns.dispatch(id),
-    {},
+    input,
   );
 }
 
-export async function dispatchCampaignBatch(campaignIds: string[]) {
+export async function dispatchCampaignBatch(input: DispatchCampaignBatchInput) {
   return postJson<DispatchCampaignBatchResult, DispatchCampaignBatchInput>(
     endpoints.campaigns.dispatchBatch,
-    {
-      campaignIds,
-    },
+    input,
   );
 }

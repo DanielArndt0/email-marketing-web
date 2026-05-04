@@ -39,13 +39,14 @@ export function CampaignForm(props: CampaignFormProps) {
             selectedTemplate={controller.selectedTemplate}
             selectedAudience={controller.selectedAudience}
             selectedSmtpSender={controller.selectedSmtpSender}
-            audienceFields={controller.audienceFields}
+            leadPathOptions={controller.leadPathOptions}
             templateVariableMappings={controller.templateVariableMappings}
             onMappingSourceChange={controller.handleMappingSourceChange}
             onMappingPathChange={controller.handleMappingPathChange}
             onMappingStaticValueChange={
               controller.handleMappingStaticValueChange
             }
+            onMappingFallbackChange={controller.handleMappingFallbackChange}
           />
         ) : null}
 

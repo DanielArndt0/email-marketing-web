@@ -60,14 +60,14 @@ export type CampaignStepProps = {
   selectedAudience: Audience | null;
   selectedSmtpSender: SmtpSender | null;
 
-  audienceFields: string[];
-  leadPathOptions?: LeadPathOption[];
+  leadPathOptions: LeadPathOption[];
 
   templateVariableMappings: TemplateVariableMappings;
 
   onMappingSourceChange: (variable: string, source: MappingSource) => void;
   onMappingPathChange: (variable: string, path: string) => void;
   onMappingStaticValueChange: (variable: string, value: string) => void;
+  onMappingFallbackChange: (variable: string, fallback: string) => void;
 };
 
 export type CampaignSummaryStepProps = {
