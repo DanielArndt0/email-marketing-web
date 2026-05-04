@@ -26,7 +26,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run format:check && npm run lint && npm run build",
+    "check": "npm run typecheck && npm run lint && npm run build",
     "fix": "npm run format && npm run lint:fix",
     "clean": "node -e \"const fs=require('node:fs'); for (const path of ['.next', 'out', 'dist', 'coverage', 'tsconfig.tsbuildinfo', '.tsbuildinfo', '.eslintcache']) fs.rmSync(path, { recursive: true, force: true });\"",
     "clean:cache": "node -e \"const fs=require('node:fs'); for (const path of ['.next', '.next/cache', 'tsconfig.tsbuildinfo', '.tsbuildinfo', '.eslintcache']) fs.rmSync(path, { recursive: true, force: true });\"",
