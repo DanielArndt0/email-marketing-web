@@ -20,6 +20,20 @@ function asString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
+function getStringValue(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function getNumberValue(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
 function normalizeTemplate(raw: unknown): EmailTemplate {
   const item = asRecord(raw);
 
@@ -200,95 +214,132 @@ function normalizeVariables(value: unknown): TemplateVariable[] {
   return variables;
 }
 
-
 function asNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 function normalizeEmbeddedAssets(
   value: unknown,
-  templateId?: string,
+  fallbackTemplateId?: string,
 ): TemplateEmbeddedAsset[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value
-    .map((item) => {
-      const record = asRecord(item);
-      const id = asString(record.id) ?? asString(record.assetId) ?? "";
-      const fileName =
-        asString(record.fileName) ??
-        asString(record.filename) ??
-        asString(record.name) ??
-        "imagem";
-      const cid = asString(record.cid) ?? asString(record.contentId) ?? "";
-
-      if (!id && !cid) {
+    .map((item): TemplateEmbeddedAsset | null => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
         return null;
       }
 
-      return {
-        id: id || cid,
-        templateId,
+      const record = item as Record<string, unknown>;
+
+      const id = getStringValue(record.id);
+      const fileName =
+        getStringValue(record.fileName) ??
+        getStringValue(record.filename) ??
+        getStringValue(record.name);
+      const mimeType =
+        getStringValue(record.mimeType) ??
+        getStringValue(record.contentType) ??
+        "application/octet-stream";
+      const sizeBytes =
+        getNumberValue(record.sizeBytes) ?? getNumberValue(record.size) ?? 0;
+      const cid = getStringValue(record.cid);
+      const templateId =
+        getStringValue(record.templateId) ??
+        getStringValue(record.template_id) ??
+        fallbackTemplateId;
+      const previewUrl =
+        getStringValue(record.previewUrl) ?? getStringValue(record.url) ?? null;
+      const createdAt = getStringValue(record.createdAt);
+
+      if (!id || !fileName || !cid) {
+        return null;
+      }
+
+      const asset: TemplateEmbeddedAsset = {
+        id,
         fileName,
-        mimeType:
-          asString(record.mimeType) ??
-          asString(record.contentType) ??
-          "application/octet-stream",
-        sizeBytes:
-          asNumber(record.sizeBytes) ?? asNumber(record.size) ?? 0,
+        mimeType,
+        sizeBytes,
         cid,
-        previewUrl:
-          asString(record.previewUrl) ??
-          asString(record.url) ??
-          asString(record.publicUrl) ??
-          null,
-        createdAt: asString(record.createdAt) ?? asString(record.created_at),
-      } satisfies TemplateEmbeddedAsset;
+        previewUrl,
+      };
+
+      if (templateId) {
+        asset.templateId = templateId;
+      }
+
+      if (createdAt) {
+        asset.createdAt = createdAt;
+      }
+
+      return asset;
     })
-    .filter((item): item is TemplateEmbeddedAsset => Boolean(item));
+    .filter(isNotNull);
 }
 
 function normalizeEmailAttachments(
   value: unknown,
-  templateId?: string,
+  fallbackTemplateId?: string,
 ): TemplateEmailAttachment[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value
-    .map((item) => {
-      const record = asRecord(item);
-      const id = asString(record.id) ?? asString(record.attachmentId) ?? "";
-      const fileName =
-        asString(record.fileName) ??
-        asString(record.filename) ??
-        asString(record.name) ??
-        "arquivo";
-
-      if (!id && !fileName) {
+    .map((item): TemplateEmailAttachment | null => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
         return null;
       }
 
-      return {
-        id: id || fileName,
-        templateId,
+      const record = item as Record<string, unknown>;
+
+      const id = getStringValue(record.id);
+      const fileName =
+        getStringValue(record.fileName) ??
+        getStringValue(record.filename) ??
+        getStringValue(record.name);
+      const mimeType =
+        getStringValue(record.mimeType) ??
+        getStringValue(record.contentType) ??
+        "application/octet-stream";
+      const sizeBytes =
+        getNumberValue(record.sizeBytes) ?? getNumberValue(record.size) ?? 0;
+      const templateId =
+        getStringValue(record.templateId) ??
+        getStringValue(record.template_id) ??
+        fallbackTemplateId;
+      const downloadUrl =
+        getStringValue(record.downloadUrl) ??
+        getStringValue(record.url) ??
+        null;
+      const createdAt = getStringValue(record.createdAt);
+
+      if (!id || !fileName) {
+        return null;
+      }
+
+      const attachment: TemplateEmailAttachment = {
+        id,
         fileName,
-        mimeType:
-          asString(record.mimeType) ??
-          asString(record.contentType) ??
-          "application/octet-stream",
-        sizeBytes:
-          asNumber(record.sizeBytes) ?? asNumber(record.size) ?? 0,
-        downloadUrl:
-          asString(record.downloadUrl) ??
-          asString(record.url) ??
-          asString(record.publicUrl) ??
-          null,
-        createdAt: asString(record.createdAt) ?? asString(record.created_at),
-      } satisfies TemplateEmailAttachment;
+        mimeType,
+        sizeBytes,
+        downloadUrl,
+      };
+
+      if (templateId) {
+        attachment.templateId = templateId;
+      }
+
+      if (createdAt) {
+        attachment.createdAt = createdAt;
+      }
+
+      return attachment;
     })
-    .filter((item): item is TemplateEmailAttachment => Boolean(item));
+    .filter(isNotNull);
 }

@@ -110,14 +110,20 @@ function TemplateReviewPanel({
       </p>
 
       <div className="mt-5 space-y-3">
-        <ReviewItem label="Nome" value={namePreview?.trim() || "Não informado"} />
+        <ReviewItem
+          label="Nome"
+          value={namePreview?.trim() || "Não informado"}
+        />
         <ReviewItem
           label="Assunto"
           value={subjectPreview?.trim() || "Não informado"}
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <ReviewItem label="Tipo" value={contentMode === "html" ? "HTML" : "Texto puro"} />
+          <ReviewItem
+            label="Tipo"
+            value={contentMode === "html" ? "HTML" : "Texto puro"}
+          />
           <ReviewItem label="Variáveis" value={declaredVariables.length} />
           <ReviewItem label="Imagens CID" value={embeddedAssetsCount} />
           <ReviewItem label="Anexos" value={attachmentsCount} />
@@ -127,7 +133,13 @@ function TemplateReviewPanel({
   );
 }
 
-function ReviewItem({ label, value }: { label: string; value: string | number }) {
+function ReviewItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
     <div className="app-card-flat rounded-2xl p-4">
       <p className="app-soft text-xs font-semibold uppercase tracking-wide">

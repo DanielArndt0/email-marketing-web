@@ -30,8 +30,8 @@ export function TemplateAssetsStep({
             </h3>
 
             <p className="app-muted mt-1 text-sm leading-6">
-              Use esta etapa para adicionar logos, banners, ícones e imagens
-              que aparecem dentro do corpo do e-mail por referência{" "}
+              Use esta etapa para adicionar logos, banners, ícones e imagens que
+              aparecem dentro do corpo do e-mail por referência{" "}
               <span className="font-mono">cid:</span>.
             </p>
 

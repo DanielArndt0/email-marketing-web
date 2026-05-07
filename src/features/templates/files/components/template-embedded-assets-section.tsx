@@ -32,8 +32,9 @@ export function TemplateEmbeddedAssetsSection({
           </h3>
 
           <p className="app-muted mt-1 text-sm leading-6">
-            Use para logos, banners, ícones e imagens que aparecem dentro do HTML
-            do e-mail usando referências <span className="font-mono">cid:</span>.
+            Use para logos, banners, ícones e imagens que aparecem dentro do
+            HTML do e-mail usando referências{" "}
+            <span className="font-mono">cid:</span>.
           </p>
         </div>
 

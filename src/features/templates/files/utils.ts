@@ -1,7 +1,4 @@
-import type {
-  TemplateEmailAttachment,
-  TemplateEmbeddedAsset,
-} from "./types";
+import type { TemplateEmailAttachment, TemplateEmbeddedAsset } from "./types";
 
 function createClientId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -15,7 +12,10 @@ function removeFileExtension(fileName: string) {
   return fileName.replace(/\.[^.]+$/, "");
 }
 
-export function createCidFromFileName(fileName: string, existingCids: string[]) {
+export function createCidFromFileName(
+  fileName: string,
+  existingCids: string[],
+) {
   const base = removeFileExtension(fileName)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

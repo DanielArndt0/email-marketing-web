@@ -20,3 +20,12 @@ export type TemplateEmailAttachment = {
   createdAt?: string;
   file?: File;
 };
+
+export type TemplateFileLike = {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt?: string;
+  file?: File;
+};
