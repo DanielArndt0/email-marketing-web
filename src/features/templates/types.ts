@@ -1,3 +1,8 @@
+import type {
+  TemplateEmailAttachment,
+  TemplateEmbeddedAsset,
+} from "./files/types";
+
 export type TemplateVariable = {
   key: string;
   label?: string;
@@ -13,6 +18,8 @@ export type EmailTemplate = {
   htmlContent?: string | null;
   textContent?: string | null;
   variables?: TemplateVariable[];
+  embeddedAssets?: TemplateEmbeddedAsset[];
+  emailAttachments?: TemplateEmailAttachment[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -26,3 +33,5 @@ export type CreateTemplateInput = {
 };
 
 export type UpdateTemplateInput = Partial<CreateTemplateInput>;
+
+export type { TemplateEmailAttachment, TemplateEmbeddedAsset };

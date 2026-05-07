@@ -4,6 +4,8 @@ import { deleteJson, getJson, patchJson, postJson } from "@/lib/api/http";
 import type {
   CreateTemplateInput,
   EmailTemplate,
+  TemplateEmailAttachment,
+  TemplateEmbeddedAsset,
   TemplateVariable,
   UpdateTemplateInput,
 } from "./types";
@@ -39,6 +41,14 @@ function normalizeTemplate(raw: unknown): EmailTemplate {
       asString(item.contentText),
 
     variables: normalizeVariables(item.variables),
+    embeddedAssets: normalizeEmbeddedAssets(
+      item.embeddedAssets ?? item.assets ?? item.inlineAssets,
+      asString(item.id) ?? asString(item.templateId),
+    ),
+    emailAttachments: normalizeEmailAttachments(
+      item.emailAttachments ?? item.attachments ?? item.files,
+      asString(item.id) ?? asString(item.templateId),
+    ),
 
     createdAt: asString(item.createdAt) ?? asString(item.created_at),
 
@@ -188,4 +198,97 @@ function normalizeVariables(value: unknown): TemplateVariable[] {
   }
 
   return variables;
+}
+
+
+function asNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function normalizeEmbeddedAssets(
+  value: unknown,
+  templateId?: string,
+): TemplateEmbeddedAsset[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      const record = asRecord(item);
+      const id = asString(record.id) ?? asString(record.assetId) ?? "";
+      const fileName =
+        asString(record.fileName) ??
+        asString(record.filename) ??
+        asString(record.name) ??
+        "imagem";
+      const cid = asString(record.cid) ?? asString(record.contentId) ?? "";
+
+      if (!id && !cid) {
+        return null;
+      }
+
+      return {
+        id: id || cid,
+        templateId,
+        fileName,
+        mimeType:
+          asString(record.mimeType) ??
+          asString(record.contentType) ??
+          "application/octet-stream",
+        sizeBytes:
+          asNumber(record.sizeBytes) ?? asNumber(record.size) ?? 0,
+        cid,
+        previewUrl:
+          asString(record.previewUrl) ??
+          asString(record.url) ??
+          asString(record.publicUrl) ??
+          null,
+        createdAt: asString(record.createdAt) ?? asString(record.created_at),
+      } satisfies TemplateEmbeddedAsset;
+    })
+    .filter((item): item is TemplateEmbeddedAsset => Boolean(item));
+}
+
+function normalizeEmailAttachments(
+  value: unknown,
+  templateId?: string,
+): TemplateEmailAttachment[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => {
+      const record = asRecord(item);
+      const id = asString(record.id) ?? asString(record.attachmentId) ?? "";
+      const fileName =
+        asString(record.fileName) ??
+        asString(record.filename) ??
+        asString(record.name) ??
+        "arquivo";
+
+      if (!id && !fileName) {
+        return null;
+      }
+
+      return {
+        id: id || fileName,
+        templateId,
+        fileName,
+        mimeType:
+          asString(record.mimeType) ??
+          asString(record.contentType) ??
+          "application/octet-stream",
+        sizeBytes:
+          asNumber(record.sizeBytes) ?? asNumber(record.size) ?? 0,
+        downloadUrl:
+          asString(record.downloadUrl) ??
+          asString(record.url) ??
+          asString(record.publicUrl) ??
+          null,
+        createdAt: asString(record.createdAt) ?? asString(record.created_at),
+      } satisfies TemplateEmailAttachment;
+    })
+    .filter((item): item is TemplateEmailAttachment => Boolean(item));
 }
