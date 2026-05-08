@@ -262,6 +262,8 @@ function normalizeEmbeddedAssets(
 
       const asset: TemplateEmbeddedAsset = {
         id,
+        originalName: fileName,
+        storedName: fileName,
         fileName,
         mimeType,
         sizeBytes,
@@ -325,6 +327,8 @@ function normalizeEmailAttachments(
 
       const attachment: TemplateEmailAttachment = {
         id,
+        originalName: fileName,
+        storedName: fileName,
         fileName,
         mimeType,
         sizeBytes,

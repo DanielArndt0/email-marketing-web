@@ -10,6 +10,8 @@ import {
   templateFormSchema,
   type TemplateFormValues,
 } from "../../../schemas";
+import type { TemplateEmbeddedAsset } from "../../../files/types";
+import { buildEmbeddedImageSnippet } from "../../../files/utils";
 import type {
   ContentMode,
   TemplateFormController,
@@ -29,6 +31,7 @@ export function useTemplateFormController({
   onSaved,
 }: TemplateFormProps): TemplateFormController {
   const normalizedTemplate = template as TemplateRecord | null;
+
   const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
 
@@ -36,6 +39,8 @@ export function useTemplateFormController({
   const [contentMode, setContentMode] = useState<ContentMode>(
     getInitialContentMode(normalizedTemplate),
   );
+  const [htmlFileName, setHtmlFileName] = useState("");
+  const [fileFeedback, setFileFeedback] = useState<string | null>(null);
 
   const defaultValues = useMemo(
     () => getDefaultValues(normalizedTemplate),
@@ -48,10 +53,7 @@ export function useTemplateFormController({
   });
 
   const filesState = useTemplateFilesState({
-    form,
-    template: normalizedTemplate,
-    onContentModeChange: setContentMode,
-    onStepChange: setCurrentStep,
+    templateId: template?.id ?? null,
   });
 
   const previewState = useTemplatePreviewState({
@@ -64,7 +66,13 @@ export function useTemplateFormController({
     form.reset(defaultValues);
     setCurrentStep(0);
     setContentMode(getInitialContentMode(normalizedTemplate));
+    setHtmlFileName("");
+    setFileFeedback(null);
   }, [defaultValues, form, normalizedTemplate]);
+
+  function clearFileFeedback() {
+    setFileFeedback(null);
+  }
 
   async function validateContentStep() {
     form.clearErrors(["html", "text"]);
@@ -77,6 +85,7 @@ export function useTemplateFormController({
     ];
 
     const isValid = await form.trigger(fieldsToValidate);
+
     const htmlContent = form.getValues("html")?.trim() ?? "";
     const textContent = form.getValues("text")?.trim() ?? "";
 
@@ -102,7 +111,7 @@ export function useTemplateFormController({
   }
 
   async function goToNextStep() {
-    filesState.clearFileFeedback();
+    clearFileFeedback();
 
     if (currentStep === 0) {
       const isValid = await validateContentStep();
@@ -121,10 +130,56 @@ export function useTemplateFormController({
   }
 
   function goToPreviousStep() {
-    filesState.clearFileFeedback();
+    clearFileFeedback();
 
     setCurrentStep((step) =>
       step > 0 ? ((step - 1) as TemplateFormStep) : step,
+    );
+  }
+
+  async function handleHtmlFileChange(file?: File) {
+    if (!file) {
+      return;
+    }
+
+    const content = await file.text();
+
+    setHtmlFileName(file.name);
+    setContentMode("html");
+    setFileFeedback(`Arquivo HTML importado: ${file.name}`);
+
+    form.setValue("html", content, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  async function handleCopyCid(asset: TemplateEmbeddedAsset) {
+    const cidReference = `cid:${asset.cid}`;
+
+    try {
+      await navigator.clipboard.writeText(cidReference);
+      setFileFeedback(`Referência ${cidReference} copiada.`);
+    } catch {
+      setFileFeedback(`Copie manualmente a referência: ${cidReference}`);
+    }
+  }
+
+  function handleInsertEmbeddedImage(asset: TemplateEmbeddedAsset) {
+    const currentHtml = form.getValues("html") ?? "";
+    const snippet = buildEmbeddedImageSnippet(asset);
+    const separator = currentHtml.trim() ? "\n" : "";
+
+    setContentMode("html");
+
+    form.setValue("html", `${currentHtml}${separator}${snippet}`, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+
+    setCurrentStep(0);
+    setFileFeedback(
+      `Imagem ${asset.fileName} inserida no HTML. Revise o preview do conteúdo.`,
     );
   }
 
@@ -143,45 +198,60 @@ export function useTemplateFormController({
       name: values.name.trim(),
       subject: values.subject.trim(),
       variables: parseVariables(values.variables),
+
       ...(contentMode === "html" ? { htmlContent } : { textContent }),
     };
 
-    if (template) {
-      await updateTemplate.mutateAsync({
-        id: template.id,
-        input: payload,
-      });
-    } else {
-      await createTemplate.mutateAsync(payload);
+    const savedTemplate = template
+      ? await updateTemplate.mutateAsync({
+          id: template.id,
+          input: payload,
+        })
+      : await createTemplate.mutateAsync(payload);
+
+    if (savedTemplate.id) {
+      await filesState.persistPendingTemplateFiles(savedTemplate.id);
     }
 
     onSaved();
   }
 
+  const isPending =
+    createTemplate.isPending ||
+    updateTemplate.isPending ||
+    filesState.isPersistingTemplateFiles;
+
   return {
     form,
     isEditing: Boolean(template),
-    isPending: createTemplate.isPending || updateTemplate.isPending,
+    isPending,
+
     currentStep,
     contentMode,
-    htmlFileName: filesState.htmlFileName,
-    fileFeedback: filesState.fileFeedback,
+
+    htmlFileName,
+    fileFeedback,
+
     embeddedAssets: filesState.embeddedAssets,
     emailAttachments: filesState.emailAttachments,
+
     declaredVariables: previewState.declaredVariables,
     namePreview: previewState.namePreview,
     subjectPreview: previewState.subjectPreview,
     previewState: previewState.previewState,
+
     setContentMode,
     goToNextStep,
     goToPreviousStep,
-    handleHtmlFileChange: filesState.handleHtmlFileChange,
+
+    handleHtmlFileChange,
     handleAddEmbeddedAssetFiles: filesState.handleAddEmbeddedAssetFiles,
     handleRemoveEmbeddedAsset: filesState.handleRemoveEmbeddedAsset,
     handleAddEmailAttachmentFiles: filesState.handleAddEmailAttachmentFiles,
     handleRemoveEmailAttachment: filesState.handleRemoveEmailAttachment,
-    handleCopyCid: filesState.handleCopyCid,
-    handleInsertEmbeddedImage: filesState.handleInsertEmbeddedImage,
+    handleCopyCid,
+    handleInsertEmbeddedImage,
+
     handleSubmit: form.handleSubmit(submitTemplate),
   };
 }

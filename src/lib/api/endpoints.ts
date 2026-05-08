@@ -5,6 +5,20 @@ export const endpoints = {
     list: "/templates",
     create: "/templates",
     byId: (id: string) => `/templates/${id}`,
+
+    inlineAssets: {
+      list: (templateId: string) => `/templates/${templateId}/inline-assets`,
+      create: (templateId: string) => `/templates/${templateId}/inline-assets`,
+      byId: (templateId: string, fileId: string) =>
+        `/templates/${templateId}/inline-assets/${fileId}`,
+    },
+
+    attachments: {
+      list: (templateId: string) => `/templates/${templateId}/attachments`,
+      create: (templateId: string) => `/templates/${templateId}/attachments`,
+      byId: (templateId: string, fileId: string) =>
+        `/templates/${templateId}/attachments/${fileId}`,
+    },
   },
 
   audiences: {

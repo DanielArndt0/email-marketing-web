@@ -1,202 +1,230 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import { useCallback, useMemo, useState } from "react";
 
 import {
-  buildEmbeddedImageSnippet,
+  useCreateTemplateAttachment,
+  useCreateTemplateInlineAsset,
+  useDeleteTemplateAttachment,
+  useDeleteTemplateInlineAsset,
+  useTemplateAttachments,
+  useTemplateInlineAssets,
+} from "../../../files/hooks";
+import type {
+  TemplateEmailAttachment,
+  TemplateEmbeddedAsset,
+} from "../../../files/types";
+import {
+  buildAttachmentInput,
+  buildInlineAssetInput,
   createEmailAttachmentFromFile,
   createEmbeddedAssetFromFile,
   revokeTemplateFileUrl,
 } from "../../../files/utils";
-import type {
-  TemplateEmailAttachment,
-  TemplateEmbeddedAsset,
-} from "../../../types";
-import type { TemplateFormValues } from "../../../schemas";
-import type { ContentMode, TemplateFormStep, TemplateRecord } from "../types";
-import {
-  getInitialEmailAttachments,
-  getInitialEmbeddedAssets,
-} from "../utils/template-form-defaults";
+
+type UseTemplateFilesStateParams = {
+  templateId?: string | null;
+};
 
 export function useTemplateFilesState({
-  form,
-  template,
-  onContentModeChange,
-  onStepChange,
-}: {
-  form: UseFormReturn<TemplateFormValues>;
-  template: TemplateRecord | null;
-  onContentModeChange: (mode: ContentMode) => void;
-  onStepChange: (step: TemplateFormStep) => void;
-}) {
-  const [htmlFileName, setHtmlFileName] = useState("");
-  const [fileFeedback, setFileFeedback] = useState<string | null>(null);
-  const [embeddedAssets, setEmbeddedAssets] = useState<TemplateEmbeddedAsset[]>(
-    () => getInitialEmbeddedAssets(template),
-  );
-  const [emailAttachments, setEmailAttachments] = useState<
+  templateId,
+}: UseTemplateFilesStateParams) {
+  const inlineAssetsQuery = useTemplateInlineAssets(templateId);
+  const attachmentsQuery = useTemplateAttachments(templateId);
+
+  const createInlineAsset = useCreateTemplateInlineAsset();
+  const deleteInlineAsset = useDeleteTemplateInlineAsset();
+
+  const createAttachment = useCreateTemplateAttachment();
+  const deleteAttachment = useDeleteTemplateAttachment();
+
+  const [pendingEmbeddedAssets, setPendingEmbeddedAssets] = useState<
+    TemplateEmbeddedAsset[]
+  >([]);
+  const [pendingEmailAttachments, setPendingEmailAttachments] = useState<
     TemplateEmailAttachment[]
-  >(() => getInitialEmailAttachments(template));
+  >([]);
 
-  const embeddedAssetsRef = useRef(embeddedAssets);
-  const emailAttachmentsRef = useRef(emailAttachments);
+  const persistedEmbeddedAssets = useMemo(
+    () => inlineAssetsQuery.data?.items ?? [],
+    [inlineAssetsQuery.data?.items],
+  );
 
-  useEffect(() => {
-    embeddedAssetsRef.current = embeddedAssets;
-  }, [embeddedAssets]);
+  const persistedEmailAttachments = useMemo(
+    () => attachmentsQuery.data?.items ?? [],
+    [attachmentsQuery.data?.items],
+  );
 
-  useEffect(() => {
-    emailAttachmentsRef.current = emailAttachments;
-  }, [emailAttachments]);
+  const embeddedAssets = useMemo(
+    () => [...persistedEmbeddedAssets, ...pendingEmbeddedAssets],
+    [persistedEmbeddedAssets, pendingEmbeddedAssets],
+  );
 
-  useEffect(() => {
-    return () => {
-      embeddedAssetsRef.current.forEach(revokeTemplateFileUrl);
-      emailAttachmentsRef.current.forEach(revokeTemplateFileUrl);
-    };
-  }, []);
+  const emailAttachments = useMemo(
+    () => [...persistedEmailAttachments, ...pendingEmailAttachments],
+    [persistedEmailAttachments, pendingEmailAttachments],
+  );
 
-  useEffect(() => {
-    setHtmlFileName("");
-    setFileFeedback(null);
+  const handleAddEmbeddedAssetFiles = useCallback(
+    (files: File[]) => {
+      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
-    setEmbeddedAssets((previousAssets) => {
-      previousAssets.forEach(revokeTemplateFileUrl);
-      return getInitialEmbeddedAssets(template);
-    });
-
-    setEmailAttachments((previousAttachments) => {
-      previousAttachments.forEach(revokeTemplateFileUrl);
-      return getInitialEmailAttachments(template);
-    });
-  }, [template]);
-
-  async function handleHtmlFileChange(file?: File) {
-    if (!file) {
-      return;
-    }
-
-    const content = await file.text();
-
-    setHtmlFileName(file.name);
-    onContentModeChange("html");
-
-    form.setValue("html", content, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }
-
-  function handleAddEmbeddedAssetFiles(files: File[]) {
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-
-    if (imageFiles.length !== files.length) {
-      setFileFeedback(
-        "Alguns arquivos foram ignorados porque imagens incorporadas aceitam apenas arquivos de imagem.",
-      );
-    }
-
-    if (imageFiles.length === 0) {
-      return;
-    }
-
-    setEmbeddedAssets((currentAssets) => {
-      const assets = [...currentAssets];
-      const existingCids = assets.map((asset) => asset.cid);
-
-      for (const file of imageFiles) {
-        const asset = createEmbeddedAssetFromFile(file, existingCids);
-        existingCids.push(asset.cid);
-        assets.push(asset);
+      if (imageFiles.length === 0) {
+        return;
       }
 
-      return assets;
-    });
-  }
+      setPendingEmbeddedAssets((currentAssets) => {
+        const existingCids = [
+          ...persistedEmbeddedAssets.map((asset) => asset.cid),
+          ...currentAssets.map((asset) => asset.cid),
+        ];
 
-  function handleRemoveEmbeddedAsset(assetId: string) {
-    setEmbeddedAssets((currentAssets) => {
-      const asset = currentAssets.find((item) => item.id === assetId);
+        const nextAssets = [...currentAssets];
 
-      if (asset) {
-        revokeTemplateFileUrl(asset);
-      }
+        for (const file of imageFiles) {
+          const asset = createEmbeddedAssetFromFile(file, existingCids);
+          existingCids.push(asset.cid);
+          nextAssets.push(asset);
+        }
 
-      return currentAssets.filter((item) => item.id !== assetId);
-    });
-  }
+        return nextAssets;
+      });
+    },
+    [persistedEmbeddedAssets],
+  );
 
-  function handleAddEmailAttachmentFiles(files: File[]) {
+  const handleAddEmailAttachmentFiles = useCallback((files: File[]) => {
     if (files.length === 0) {
       return;
     }
 
-    setEmailAttachments((currentAttachments) => [
+    setPendingEmailAttachments((currentAttachments) => [
       ...currentAttachments,
       ...files.map(createEmailAttachmentFromFile),
     ]);
-  }
+  }, []);
 
-  function handleRemoveEmailAttachment(attachmentId: string) {
-    setEmailAttachments((currentAttachments) => {
-      const attachment = currentAttachments.find(
-        (item) => item.id === attachmentId,
+  const handleRemoveEmbeddedAsset = useCallback(
+    async (assetId: string) => {
+      const pendingAsset = pendingEmbeddedAssets.find(
+        (asset) => asset.id === assetId,
       );
 
-      if (attachment) {
-        revokeTemplateFileUrl(attachment);
+      if (pendingAsset) {
+        revokeTemplateFileUrl(pendingAsset);
+
+        setPendingEmbeddedAssets((currentAssets) =>
+          currentAssets.filter((asset) => asset.id !== assetId),
+        );
+
+        return;
       }
 
-      return currentAttachments.filter((item) => item.id !== attachmentId);
-    });
-  }
+      if (!templateId) {
+        return;
+      }
 
-  async function handleCopyCid(asset: TemplateEmbeddedAsset) {
-    const cidReference = `cid:${asset.cid}`;
+      await deleteInlineAsset.mutateAsync({
+        templateId,
+        fileId: assetId,
+      });
+    },
+    [deleteInlineAsset, pendingEmbeddedAssets, templateId],
+  );
 
-    try {
-      await navigator.clipboard.writeText(cidReference);
-      setFileFeedback(`Referência ${cidReference} copiada.`);
-    } catch {
-      setFileFeedback(`Copie manualmente a referência: ${cidReference}`);
-    }
-  }
+  const handleRemoveEmailAttachment = useCallback(
+    async (attachmentId: string) => {
+      const pendingAttachment = pendingEmailAttachments.find(
+        (attachment) => attachment.id === attachmentId,
+      );
 
-  function handleInsertEmbeddedImage(asset: TemplateEmbeddedAsset) {
-    const currentHtml = form.getValues("html") ?? "";
-    const snippet = buildEmbeddedImageSnippet(asset);
-    const separator = currentHtml.trim() ? "\n" : "";
+      if (pendingAttachment) {
+        revokeTemplateFileUrl(pendingAttachment);
 
-    onContentModeChange("html");
-    form.setValue("html", `${currentHtml}${separator}${snippet}`, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
+        setPendingEmailAttachments((currentAttachments) =>
+          currentAttachments.filter(
+            (attachment) => attachment.id !== attachmentId,
+          ),
+        );
 
-    onStepChange(0);
-    setFileFeedback(
-      `Imagem ${asset.fileName} inserida no HTML. Revise o preview do conteúdo.`,
-    );
-  }
+        return;
+      }
 
-  function clearFileFeedback() {
-    setFileFeedback(null);
-  }
+      if (!templateId) {
+        return;
+      }
+
+      await deleteAttachment.mutateAsync({
+        templateId,
+        fileId: attachmentId,
+      });
+    },
+    [deleteAttachment, pendingEmailAttachments, templateId],
+  );
+
+  const persistPendingTemplateFiles = useCallback(
+    async (targetTemplateId: string) => {
+      for (const asset of pendingEmbeddedAssets) {
+        await createInlineAsset.mutateAsync({
+          templateId: targetTemplateId,
+          input: buildInlineAssetInput(targetTemplateId, asset),
+        });
+      }
+
+      for (const attachment of pendingEmailAttachments) {
+        await createAttachment.mutateAsync({
+          templateId: targetTemplateId,
+          input: buildAttachmentInput(targetTemplateId, attachment),
+        });
+      }
+
+      pendingEmbeddedAssets.forEach(revokeTemplateFileUrl);
+      pendingEmailAttachments.forEach(revokeTemplateFileUrl);
+
+      setPendingEmbeddedAssets([]);
+      setPendingEmailAttachments([]);
+    },
+    [
+      createAttachment,
+      createInlineAsset,
+      pendingEmailAttachments,
+      pendingEmbeddedAssets,
+    ],
+  );
+
+  const resetPendingTemplateFiles = useCallback(() => {
+    pendingEmbeddedAssets.forEach(revokeTemplateFileUrl);
+    pendingEmailAttachments.forEach(revokeTemplateFileUrl);
+
+    setPendingEmbeddedAssets([]);
+    setPendingEmailAttachments([]);
+  }, [pendingEmailAttachments, pendingEmbeddedAssets]);
+
+  const isLoadingTemplateFiles =
+    inlineAssetsQuery.isLoading || attachmentsQuery.isLoading;
+
+  const isPersistingTemplateFiles =
+    createInlineAsset.isPending ||
+    createAttachment.isPending ||
+    deleteInlineAsset.isPending ||
+    deleteAttachment.isPending;
 
   return {
-    htmlFileName,
-    fileFeedback,
     embeddedAssets,
     emailAttachments,
-    clearFileFeedback,
-    handleHtmlFileChange,
+
+    persistedEmbeddedAssets,
+    persistedEmailAttachments,
+    pendingEmbeddedAssets,
+    pendingEmailAttachments,
+
+    isLoadingTemplateFiles,
+    isPersistingTemplateFiles,
+
     handleAddEmbeddedAssetFiles,
     handleRemoveEmbeddedAsset,
     handleAddEmailAttachmentFiles,
     handleRemoveEmailAttachment,
-    handleCopyCid,
-    handleInsertEmbeddedImage,
+
+    persistPendingTemplateFiles,
+    resetPendingTemplateFiles,
   };
 }

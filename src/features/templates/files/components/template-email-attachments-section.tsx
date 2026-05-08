@@ -5,7 +5,7 @@ import { FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import type { TemplateEmailAttachment } from "../types";
-import { formatFileSize } from "../utils";
+import { formatTemplateFileSize } from "../utils";
 import { TemplateFileDropzone } from "./template-file-dropzone";
 
 type TemplateEmailAttachmentsSectionProps = {
@@ -62,7 +62,8 @@ export function TemplateEmailAttachmentsSection({
                   {attachment.fileName}
                 </h4>
                 <p className="app-muted mt-1 text-xs">
-                  {attachment.mimeType} • {formatFileSize(attachment.sizeBytes)}
+                  {attachment.mimeType} •{" "}
+                  {formatTemplateFileSize(attachment.sizeBytes)}
                 </p>
               </div>
 

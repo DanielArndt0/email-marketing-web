@@ -5,7 +5,7 @@ import { Copy, ImageIcon, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import type { TemplateEmbeddedAsset } from "../types";
-import { formatFileSize } from "../utils";
+import { formatTemplateFileSize } from "../utils";
 import { TemplateFileDropzone } from "./template-file-dropzone";
 
 type TemplateEmbeddedAssetsSectionProps = {
@@ -80,7 +80,8 @@ export function TemplateEmbeddedAssetsSection({
                     </h4>
 
                     <p className="app-muted mt-1 text-xs">
-                      {asset.mimeType} • {formatFileSize(asset.sizeBytes)}
+                      {asset.mimeType} •{" "}
+                      {formatTemplateFileSize(asset.sizeBytes)}
                     </p>
 
                     <code className="app-card-muted mt-2 inline-flex max-w-full rounded-lg px-2 py-1 text-xs">

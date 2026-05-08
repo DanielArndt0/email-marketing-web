@@ -3,19 +3,21 @@ import { ImageIcon } from "lucide-react";
 import { TemplateEmbeddedAssetsSection } from "../../../files/components/template-embedded-assets-section";
 import type { TemplateEmbeddedAsset } from "../../../files/types";
 
+type TemplateAssetsStepProps = {
+  assets: TemplateEmbeddedAsset[];
+  onAddFiles: (files: File[]) => void;
+  onRemove: (assetId: string) => void | Promise<void>;
+  onCopyCid: (asset: TemplateEmbeddedAsset) => void | Promise<void>;
+  onInsertImage: (asset: TemplateEmbeddedAsset) => void;
+};
+
 export function TemplateAssetsStep({
   assets,
   onAddFiles,
   onRemove,
   onCopyCid,
   onInsertImage,
-}: {
-  assets: TemplateEmbeddedAsset[];
-  onAddFiles: (files: File[]) => void;
-  onRemove: (assetId: string) => void;
-  onCopyCid: (asset: TemplateEmbeddedAsset) => Promise<void>;
-  onInsertImage: (asset: TemplateEmbeddedAsset) => void;
-}) {
+}: TemplateAssetsStepProps) {
   return (
     <div className="min-w-0 space-y-4">
       <section className="app-card-muted rounded-2xl p-4">
